@@ -14,7 +14,7 @@ from typing import Literal, TYPE_CHECKING
 
 from rich.console import Console
 
-from ..models import Paper, Section, Figure
+from ..models import Paper, Section, Figure, Table
 from .latex import LatexRenderer
 
 if TYPE_CHECKING:
@@ -192,15 +192,6 @@ class WordExporter:
             author_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             author_para.paragraph_format.first_line_indent = Cm(0)
 
-        # 关键词
-        if paper.keywords:
-            kw_para = doc.add_paragraph()
-            kw_bold = kw_para.add_run("关键词：")
-            kw_bold.bold = True
-            kw_para.add_run("；".join(paper.keywords))
-            kw_para.space_after = Pt(12)
-            kw_para.paragraph_format.first_line_indent = Cm(0)
-
         doc.add_page_break()
 
         # 添加目录标题
@@ -227,7 +218,7 @@ class WordExporter:
         for i, section in enumerate(paper.sections):
             # 每个主要章节前添加分页符
             doc.add_page_break()
-            self._add_section_to_doc(doc, section, use_final, level=1, is_first_section=(i==0))
+            self._add_section_to_doc(doc, section, use_final, level=1, is_first_section=(i==0), keywords=paper.keywords)
 
         # 保存文档
         doc.save(str(output_path))
@@ -298,8 +289,13 @@ class WordExporter:
         use_final: bool,
         level: int,
         is_first_section: bool = False,
+        keywords: list[str] | None = None,
     ) -> None:
-        """添加章节到 Word 文档"""
+        """添加章节到 Word 文档
+        
+        Args:
+            keywords: 关键词列表，仅在摘要章节后输出
+        """
         from docx.shared import Pt, Cm, Inches
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
@@ -329,8 +325,34 @@ class WordExporter:
             heading.paragraph_format.first_line_indent = Cm(0)
 
         if content:
+            # 收集本章节及所有子章节的图片和表格
+            all_figures = self._collect_all_figures(section)
+            all_tables = self._collect_all_tables(section)
             # 解析 LaTeX 内容并添加到文档（包括处理 \subsection）
-            self._add_latex_content_to_doc(doc, content, level, section.figures)
+            self._add_latex_content_to_doc(doc, content, level, all_figures, all_tables)
+        
+        # 如果是摘要章节，在内容后添加关键词
+        if keywords and section.id in ("abstract-zh", "abstract", "摘要"):
+            kw_para = doc.add_paragraph()
+            kw_bold = kw_para.add_run("关键词：")
+            kw_bold.bold = True
+            kw_bold.font.name = '宋体'
+            kw_bold._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+            kw_run = kw_para.add_run("；".join(keywords))
+            kw_run.font.name = '宋体'
+            kw_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+            kw_para.paragraph_format.first_line_indent = Cm(0)
+            kw_para.space_after = Pt(12)
+        
+        # 如果是英文摘要章节，在内容后添加 Keywords
+        if keywords and section.id in ("abstract-en", "Abstract"):
+            kw_para = doc.add_paragraph()
+            kw_bold = kw_para.add_run("Keywords: ")
+            kw_bold.bold = True
+            # 将中文关键词翻译为英文的逻辑这里简化处理，直接用中文
+            kw_para.add_run("; ".join(keywords))
+            kw_para.paragraph_format.first_line_indent = Cm(0)
+            kw_para.space_after = Pt(12)
         
         # 如果没有内容但有图片，单独添加图片
         if not content and section.figures:
@@ -340,7 +362,7 @@ class WordExporter:
         # 避免重复输出
         if not has_subsections_in_content:
             for child in section.children:
-                self._add_section_to_doc(doc, child, use_final, level + 1)
+                self._add_section_to_doc(doc, child, use_final, level + 1, keywords=keywords)
 
     def _add_figures_to_doc(
         self,
@@ -417,12 +439,182 @@ class WordExporter:
             desc_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
             desc_para.paragraph_format.first_line_indent = Cm(0)
 
+    def _insert_table(
+        self,
+        doc: "Document",
+        table: Table,
+    ) -> None:
+        """插入表格到文档"""
+        from docx.shared import Pt, Cm
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.enum.table import WD_TABLE_ALIGNMENT
+        from docx.oxml.ns import qn
+        
+        # 如果有 path，从 Excel 读取表格内容
+        if table.path:
+            try:
+                from ..utils.excel import read_excel_file
+                
+                # 确定表格路径
+                if self.images_base_path:
+                    table_path = self.images_base_path / table.path
+                else:
+                    table_path = Path(table.path)
+                
+                if table_path.exists():
+                    rows = read_excel_file(table_path)
+                    if rows:
+                        self._create_word_table(doc, rows, table)
+                        console.print(f"[green]  ✓ 插入表格: {table.caption}[/green]")
+                        return
+                    else:
+                        console.print(f"[yellow]  ⚠ 表格文件为空: {table_path}[/yellow]")
+                else:
+                    console.print(f"[yellow]  ⚠ 表格文件不存在: {table_path}[/yellow]")
+            except Exception as e:
+                console.print(f"[red]  ✗ 读取表格失败 {table.path}: {e}[/red]")
+        
+        # 如果有 content（Markdown 格式），解析并创建表格
+        if table.content:
+            rows = self._parse_markdown_table(table.content)
+            if rows:
+                self._create_word_table(doc, rows, table)
+                console.print(f"[green]  ✓ 插入表格: {table.caption}[/green]")
+                return
+        
+        # 否则添加占位符
+        self._add_table_placeholder(doc, table)
+
+    def _create_word_table(
+        self,
+        doc: "Document",
+        rows: list[list[str]],
+        table: Table,
+    ) -> None:
+        """创建 Word 表格"""
+        from docx.shared import Pt, Cm
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.enum.table import WD_TABLE_ALIGNMENT
+        from docx.oxml.ns import qn
+        
+        if not rows:
+            return
+        
+        num_rows = len(rows)
+        num_cols = max(len(row) for row in rows)
+        
+        # 创建表格
+        word_table = doc.add_table(rows=num_rows, cols=num_cols)
+        word_table.style = 'Table Grid'
+        word_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+        
+        # 填充表格内容
+        for i, row in enumerate(rows):
+            for j, cell_text in enumerate(row):
+                if j < num_cols:
+                    cell = word_table.rows[i].cells[j]
+                    cell.text = cell_text
+                    
+                    # 设置单元格字体
+                    for paragraph in cell.paragraphs:
+                        paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                        for run in paragraph.runs:
+                            run.font.name = '宋体'
+                            run.font.size = Pt(10)
+                            run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                            # 表头加粗
+                            if i == 0:
+                                run.bold = True
+        
+        # 添加表格标题（在表格下方）
+        caption_para = doc.add_paragraph()
+        caption_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        caption_run = caption_para.add_run(f"表 {table.id}: {table.caption}")
+        caption_run.font.name = '宋体'
+        caption_run.font.size = Pt(10)
+        caption_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+        caption_para.paragraph_format.first_line_indent = Cm(0)
+        caption_para.space_after = Pt(12)
+
+    def _parse_markdown_table(self, content: str) -> list[list[str]]:
+        """解析 Markdown 格式的表格"""
+        lines = content.strip().split('\n')
+        rows: list[list[str]] = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('|--') or line.startswith('| --'):
+                continue  # 跳过分隔行
+            if line.startswith('|'):
+                # 解析表格行
+                cells = [cell.strip() for cell in line.split('|')[1:-1]]
+                if cells:
+                    rows.append(cells)
+        
+        return rows
+
+    def _add_table_placeholder(
+        self,
+        doc: "Document",
+        table: Table,
+    ) -> None:
+        """添加表格占位符"""
+        from docx.shared import Pt, Cm
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml.ns import qn
+
+        para = doc.add_paragraph()
+        para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = para.add_run(f"[表 {table.id}: {table.caption}]")
+        run.font.name = '宋体'
+        run.font.size = Pt(10)
+        run.italic = True
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+        para.paragraph_format.first_line_indent = Cm(0)
+        
+        if table.description:
+            desc_para = doc.add_paragraph()
+            desc_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            desc_run = desc_para.add_run(f"（{table.description[:100]}...）" if len(table.description) > 100 else f"（{table.description}）")
+            desc_run.font.name = '宋体'
+            desc_run.font.size = Pt(9)
+            desc_run.italic = True
+            desc_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+            desc_para.paragraph_format.first_line_indent = Cm(0)
+
+    def _collect_all_figures(self, section: Section) -> list[Figure]:
+        """递归收集章节及其所有子章节的图片"""
+        all_figures: list[Figure] = []
+        
+        # 添加当前章节的图片
+        all_figures.extend(section.figures)
+        
+        # 递归添加子章节的图片
+        for child in section.children:
+            all_figures.extend(self._collect_all_figures(child))
+        
+        return all_figures
+
+    def _collect_all_tables(self, section: Section) -> list[Table]:
+        """递归收集章节及其所有子章节的表格"""
+        all_tables: list[Table] = []
+        
+        # 添加当前章节的表格
+        all_tables.extend(section.tables)
+        
+        # 递归添加子章节的表格
+        for child in section.children:
+            all_tables.extend(self._collect_all_tables(child))
+        
+        return all_tables
+
     def _add_latex_content_to_doc(
         self,
         doc: "Document",
         latex_content: str,
         base_level: int = 1,
         figures: list[Figure] | None = None,
+        tables: list[Table] | None = None,
     ) -> None:
         """将 LaTeX 内容转换并添加到 Word 文档"""
         from docx.shared import Pt, Cm, Inches
@@ -430,8 +622,16 @@ class WordExporter:
         from docx.oxml.ns import qn
 
         figures = figures or []
+        tables = tables or []
         figure_map = {f.id: f for f in figures}
+        # 同时用 caption 作为备用 key
+        for f in figures:
+            figure_map[f.caption] = f
+        table_map = {t.id: t for t in tables}
+        for t in tables:
+            table_map[t.caption] = t
         figures_inserted = set()
+        tables_inserted = set()
 
         # 先处理 LaTeX 转义符号
         content = latex_content
@@ -544,24 +744,38 @@ class WordExporter:
                 tab_caption = table_match.group(1).strip()
                 tab_desc = table_match.group(2).strip()
                 
-                para = doc.add_paragraph()
-                para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                run = para.add_run(f"[表: {tab_caption}]")
-                run.font.name = '宋体'
-                run.font.size = Pt(10)
-                run.italic = True
-                run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
-                para.paragraph_format.first_line_indent = Cm(0)
+                # 尝试查找匹配的真实表格
+                matched_table = None
+                for tab_key, tab in table_map.items():
+                    if tab.caption == tab_caption or tab_key not in tables_inserted:
+                        matched_table = tab
+                        tables_inserted.add(tab.id)
+                        tables_inserted.add(tab.caption)
+                        break
                 
-                if tab_desc:
-                    desc_para = doc.add_paragraph()
-                    desc_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    desc_run = desc_para.add_run(f"说明: {tab_desc}")
-                    desc_run.font.name = '宋体'
-                    desc_run.font.size = Pt(9)
-                    desc_run.italic = True
-                    desc_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
-                    desc_para.paragraph_format.first_line_indent = Cm(0)
+                if matched_table:
+                    # 插入真实表格
+                    self._insert_table(doc, matched_table)
+                else:
+                    # 添加占位符
+                    para = doc.add_paragraph()
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = para.add_run(f"[表: {tab_caption}]")
+                    run.font.name = '宋体'
+                    run.font.size = Pt(10)
+                    run.italic = True
+                    run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                    para.paragraph_format.first_line_indent = Cm(0)
+                    
+                    if tab_desc:
+                        desc_para = doc.add_paragraph()
+                        desc_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                        desc_run = desc_para.add_run(f"说明: {tab_desc}")
+                        desc_run.font.name = '宋体'
+                        desc_run.font.size = Pt(9)
+                        desc_run.italic = True
+                        desc_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                        desc_para.paragraph_format.first_line_indent = Cm(0)
                 continue
             
             # 合并段落内的换行
@@ -578,9 +792,18 @@ class WordExporter:
             para.paragraph_format.line_spacing = 1.5
         
         # 插入剩余未插入的图片（在内容末尾）
-        for fig_id, fig in figure_map.items():
-            if fig_id not in figures_inserted:
+        for fig in figures:
+            if fig.id not in figures_inserted and fig.caption not in figures_inserted:
                 self._insert_figure(doc, fig)
+                figures_inserted.add(fig.id)
+                figures_inserted.add(fig.caption)
+        
+        # 插入剩余未插入的表格（在内容末尾）
+        for tab in tables:
+            if tab.id not in tables_inserted and tab.caption not in tables_inserted:
+                self._insert_table(doc, tab)
+                tables_inserted.add(tab.id)
+                tables_inserted.add(tab.caption)
 
     def _insert_figure(
         self,

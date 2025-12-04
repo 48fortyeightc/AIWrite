@@ -32,7 +32,8 @@ class Table(BaseModel):
     """表格数据模型"""
     id: str = Field(..., description="表格唯一标识，如 tab3-1")
     caption: str = Field(..., description="表格标题")
-    content: str | None = Field(default=None, description="表格内容（LaTeX 格式或 Markdown）")
+    path: str | None = Field(default=None, description="Excel 文件路径（可选，用于自动读取表格内容）")
+    content: str | None = Field(default=None, description="表格内容（Markdown 格式或从 Excel 读取）")
     description: str | None = Field(default=None, description="表格说明")
 
 

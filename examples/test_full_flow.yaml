@@ -1,0 +1,262 @@
+paper:
+  title: 基于Spring Boot的教育管理系统设计与实现
+  authors:
+  - 张三
+  keywords:
+  - 教育管理系统
+  - Spring Boot
+  - MySQL
+  language: zh
+  style: academic
+  target_words: 3000
+  status: draft
+sections:
+- id: ch3
+  title: 第3章 系统概要设计
+  level: 1
+  target_words: 3000
+  notes: 本章包含系统架构图、ER图和数据库表结构。
+  children:
+  - id: ch3.1
+    title: 3.1 系统体系结构设计
+    level: 2
+    target_words: 800
+    notes: 描述系统的整体架构设计，包括前后端分离架构、三层架构等。
+    figures:
+    - id: fig3-1
+      path: images/系统部署架构图.png
+      caption: 系统部署架构图
+  - id: ch3.2
+    title: 3.2 数据库设计
+    level: 2
+    target_words: 1200
+    notes: 包括ER图和主要数据库表结构设计。
+    figures:
+    - id: fig3-2
+      path: images/信息模型（ER 图）.png
+      caption: 系统实体关系图
+    tables:
+    - id: tab3-1
+      caption: 用户表结构
+      path: images/用户表.xls
+    - id: tab3-2
+      caption: 学生表结构
+      path: images/学生表.xls
+    - id: tab3-3
+      caption: 课程表结构
+      path: images/课程表.xls
+  - id: ch3.3
+    title: 3.3 系统功能模块设计
+    level: 2
+    target_words: 1000
+    notes: 描述系统的主要功能模块，包括学生管理、课程管理等。
+    figures:
+    - id: fig3-3
+      path: images/总体功能结构图（系统功能结构图）.png
+      caption: 系统功能结构图
+  draft_latex: '\section{第3章 系统概要设计}
+
+
+    本章聚焦于教育管理系统的概要设计阶段，旨在从宏观层面规划系统的整体框架。概要设计作为连接需求分析与详细设计的桥梁，决定了系统的技术选型、数据组织和功能划分。本章内容涵盖系统体系结构设计、数据库设计以及系统功能模块设计三个核心部分，为后续的系统实现奠定坚实基础。
+
+
+    \subsection{3.1 系统体系结构设计}
+
+
+    系统的体系结构设计决定了软件的整体形态与技术路线。本教育管理系统采用基于Spring Boot的前后端分离架构，这种架构模式能够有效解耦用户界面与业务逻辑，提升开发效率与系统可维护性。前端与后端通过定义清晰的RESTful
+    API进行数据交互，实现了技术栈的独立演进与团队的分工协作。
+
+
+    在技术选型上，前端主要采用Vue.js框架构建用户界面。Vue.js以其轻量级、渐进式和组件化的特点，能够快速构建响应式且交互丰富的单页面应用。后端则以Spring
+    Boot为核心框架，其内嵌Servlet容器和自动配置特性极大地简化了基于Spring应用的初始搭建和开发过程。数据持久层选用成熟的MySQL关系型数据库，通过MyBatis-Plus这一增强工具进行数据访问操作，它提供了通用的CRUD方法，减少了大量重复的SQL编写工作。项目依赖管理由Maven负责，确保了第三方库版本的一致性与构建过程的标准化。
+
+
+    从逻辑层次上看，系统采用经典的三层架构，将应用清晰地划分为表示层、业务逻辑层和数据持久层。表示层负责接收用户请求并渲染响应结果，在本系统中，它具体体现为独立部署的前端Vue.js应用。业务逻辑层是系统的核心，承载了学生管理、课程管理等所有关键业务规则的处理。数据持久层则专注于与MySQL数据库的交互，完成数据的增删改查操作。这种分层设计使得各层职责单一，降低了层与层之间的耦合度，有利于代码的测试与维护。
+
+
+    {{FIGURE:系统部署架构图:系统采用前后端分离部署，前端静态资源由Nginx服务器托管，后端Spring Boot应用独立运行于Tomcat容器，共同访问后端MySQL数据库。}}
+
+
+    在部署架构层面，前端编译后的静态资源文件部署于Nginx服务器，由Nginx提供高效的内容分发服务。后端Spring Boot应用则打包成可执行的JAR文件，运行在内嵌的Tomcat容器中。Nginx同时可作为反向代理服务器，将API请求转发至后端应用，实现负载均衡与安全控制。数据库服务器独立部署，确保数据服务的高可用性。这种部署方式保证了系统具有良好的水平扩展能力，能够应对未来用户规模的增长。
+
+
+    \subsection{3.2 数据库设计}
+
+
+    数据库设计是系统设计的基石，直接关系到数据的完整性、一致性和访问效率。本系统通过对需求分析中涉及的实体及其关系进行抽象，构建了系统的概念模型。实体关系图清晰地展示了核心实体之间的关联，为后续的物理表结构设计提供了依据。
+
+
+    {{FIGURE:系统实体关系图:主要实体包括用户、学生、教师、课程、班级等，展示了它们之间的一对多、多对多等关系，如学生与课程之间的选课关系。}}
+
+
+    基于概念模型，我们设计了系统的物理数据库表结构。数据库命名为`education_management`，字符集采用`utf8mb4`以支持完整的Unicode字符，包括表情符号。所有表均使用InnoDB存储引擎，以支持事务处理和行级锁定。以下对几个核心表的结构进行详细说明。
+
+
+    用户表是所有系统操作者的基础信息表，采用单表继承的方式区分用户角色。该设计简化了登录认证流程，并为未来扩展新的用户类型预留了空间。
+
+    {{TABLE:用户表结构:存储系统所有用户的基础登录信息与角色标识。}}
+
+    \begin{tabular}{|c|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    user\_id & BIGINT & PRIMARY KEY, AUTO\_INCREMENT & 用户唯一标识 \\
+
+    \hline
+
+    username & VARCHAR(50) & UNIQUE, NOT NULL & 用户名，用于登录 \\
+
+    \hline
+
+    password & VARCHAR(255) & NOT NULL & 加密后的密码 \\
+
+    \hline
+
+    role & ENUM(''STUDENT'', ''TEACHER'', ''ADMIN'') & NOT NULL & 用户角色 \\
+
+    \hline
+
+    email & VARCHAR(100) &  & 电子邮箱 \\
+
+    \hline
+
+    phone & VARCHAR(20) &  & 手机号码 \\
+
+    \hline
+
+    create\_time & DATETIME & DEFAULT CURRENT\_TIMESTAMP & 账户创建时间 \\
+
+    \hline
+
+    last\_login\_time & DATETIME &  & 最后登录时间 \\
+
+    \hline
+
+    status & TINYINT(1) & DEFAULT 1 & 账户状态（1启用，0禁用） \\
+
+    \hline
+
+    \end{tabular}
+
+
+    学生表通过`user_id`与用户表关联，存储学生特有的详细信息。这种设计遵循了数据库设计的规范化原则，避免了数据冗余。
+
+    {{TABLE:学生表结构:存储学生的学号、所属院系等扩展信息。}}
+
+    \begin{tabular}{|c|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    student\_id & BIGINT & PRIMARY KEY, AUTO\_INCREMENT & 记录ID \\
+
+    \hline
+
+    user\_id & BIGINT & FOREIGN KEY (user\_id) REFERENCES user(user\_id) & 关联的用户ID
+    \\
+
+    \hline
+
+    student\_number & VARCHAR(20) & UNIQUE, NOT NULL & 学号 \\
+
+    \hline
+
+    real\_name & VARCHAR(50) & NOT NULL & 学生真实姓名 \\
+
+    \hline
+
+    gender & ENUM(''MALE'', ''FEMALE'') &  & 性别 \\
+
+    \hline
+
+    department\_id & BIGINT & FOREIGN KEY & 所属院系ID \\
+
+    \hline
+
+    enrollment\_year & YEAR &  & 入学年份 \\
+
+    \hline
+
+    \end{tabular}
+
+
+    课程表是教学资源的核心，记录了课程的基本属性以及负责的教师信息。
+
+    {{TABLE:课程表结构:定义课程的基本信息、学分及任课教师。}}
+
+    \begin{tabular}{|c|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    course\_id & BIGINT & PRIMARY KEY, AUTO\_INCREMENT & 课程唯一标识 \\
+
+    \hline
+
+    course\_code & VARCHAR(20) & UNIQUE, NOT NULL & 课程代码 \\
+
+    \hline
+
+    course\_name & VARCHAR(100) & NOT NULL & 课程名称 \\
+
+    \hline
+
+    credit & TINYINT & NOT NULL & 学分 \\
+
+    \hline
+
+    teacher\_id & BIGINT & FOREIGN KEY (teacher\_id) REFERENCES teacher(teacher\_id)
+    & 任课教师ID \\
+
+    \hline
+
+    course\_hours & SMALLINT &  & 总学时 \\
+
+    \hline
+
+    description & TEXT &  & 课程描述 \\
+
+    \hline
+
+    is\_available & TINYINT(1) & DEFAULT 1 & 是否开放选课 \\
+
+    \hline
+
+    \end{tabular}
+
+
+    除了上述核心表，系统还设计了教师表、院系表、班级表、选课表等。其中，选课表作为关联表，实现了学生与课程之间的多对多关系，并记录了选课时间、成绩等业务数据。为了优化查询性能，在经常用于查询条件和连接操作的字段上建立了索引，例如用户表的`username`字段、学生表的`student_number`字段和课程表的`course_code`字段。数据库设计充分考虑了事务一致性要求，例如学生选课操作会涉及选课表插入记录和课程表剩余名额更新，需要在同一事务中完成。
+
+
+    \subsection{3.3 系统功能模块设计}
+
+
+    根据需求分析，本教育管理系统的功能模块可划分为四大核心模块：系统权限管理、学生信息管理、课程与教学管理以及数据统计与报表。每个模块下又包含若干子功能，共同构成一个完整的教育管理解决方案。
+
+
+    {{FIGURE:系统功能结构图:系统分为权限管理、学生管理、课程管理、数据统计四大模块，各模块下包含具体的功能点。}}
+
+
+    系统权限管理模块是整个系统的安全基石。该模块负责管理所有用户的身份认证与权限控制。功能包括用户登录验证、基于角色的访问控制以及用户账户信息的维护。系统定义了三种核心角色：系统管理员、教师和学生。系统管理员拥有最高权限，可管理所有用户账户和系统基础数据；教师权限集中于课程管理和成绩录入；学生则主要进行个人信息查询和选课操作。这种精细化的权限设计确保了数据的安全性和操作的合规性。
+
+
+    学生信息管理模块覆盖学生从入学到毕业的全生命周期管理。核心子功能包括学生档案管理，用于维护学生的基本信息、学籍状态变动；学籍异动管理，处理学生的休学、复学、转专业等流程；以及奖惩信息记录。该模块确保了学生数据的准确性和时效性，为其他模块提供可靠的学生数据源。
+
+
+    课程与教学管理模块是支撑教学活动的核心。该模块允许教务人员或教师进行课程库的建立与维护，包括设定课程名称、学分、学时等属性。在每学期开始前，系统支持排课功能，为课程安排上课时间、地点和任课教师。最核心的流程是选课管理，系统在预设的选课时间段内向学生开放选课权限，并实时检查课程容量与选课冲突。选课结束后，教师可通过该模块录入和发布学生成绩，学生则能查询本人的课表与成绩单。
+
+
+    数据统计与报表模块为管理决策提供数据支持。该模块能够生成多样化的统计报表，例如按院系或班级统计的学生成绩分布情况、课程选课人数统计、教师教学任务量统计等。这些数据以图表结合的形式呈现，直观地反映了教学运行状况，有助于教学质量的评估与资源的优化配置。
+
+
+    各功能模块之间通过清晰的数据流和接口进行协作。例如，学生信息管理模块为选课管理提供学生基础数据；课程管理模块为成绩录入提供课程与选课名单；权限管理模块则为所有功能操作提供统一的访问控制。这种模块化设计使得系统结构清晰，便于后续的独立开发、测试与功能扩展。'

@@ -170,6 +170,7 @@ def load_outline(file_path: str | Path) -> Paper:
         return Table(
             id=t.get("id", ""),
             caption=t.get("caption", ""),
+            path=t.get("path"),
             content=t.get("content"),
             description=t.get("description"),
         )
@@ -237,6 +238,8 @@ def save_outline(paper: Paper, file_path: str | Path) -> None:
             "id": t.id,
             "caption": t.caption,
         }
+        if t.path:
+            d["path"] = t.path
         if t.content:
             d["content"] = t.content
         if t.description:

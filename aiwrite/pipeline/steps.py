@@ -269,39 +269,40 @@ class SectionRefineStep(PipelineStep):
         return "润色和改进章节内容"
 
     async def execute(self, context: PipelineContext) -> PipelineContext:
-        """执行章节润色"""
+        """执行章节润色（按主章节整体润色）"""
         paper = context.paper
         options = context.llm_options or LLMOptions()
 
         console.print("[bold blue]✨ 正在润色章节...[/bold blue]")
 
-        all_sections = self._flatten_sections(paper.sections)
-        total = len(all_sections)
+        # 只处理主章节（level=1），跳过摘要等特殊章节
+        main_chapters = [s for s in paper.sections if s.level == 1]
+        total = len(main_chapters)
 
-        for i, section in enumerate(all_sections, 1):
+        for i, chapter in enumerate(main_chapters, 1):
             # 跳过没有草稿的章节
-            if not section.draft_latex:
+            if not chapter.draft_latex:
                 continue
 
             # 跳过已润色的章节
-            if section.final_latex:
-                console.print(f"[dim]跳过 [{i}/{total}] {section.title} (已润色)[/dim]")
+            if chapter.final_latex:
+                console.print(f"[dim]跳过 [{i}/{total}] {chapter.title} (已润色)[/dim]")
                 continue
 
-            console.print(f"[cyan]✨ [{i}/{total}] 正在润色: {section.title}[/cyan]")
+            console.print(f"[cyan]✨ [{i}/{total}] 正在润色: {chapter.title}[/cyan]")
 
-            prompt = build_section_refine_prompt(paper, section, section.draft_latex)
+            prompt = build_section_refine_prompt(paper, chapter, chapter.draft_latex)
             response = await self.writing_provider.invoke(
                 prompt=prompt,
                 options=options,
             )
 
             if response.content:
-                section.final_latex = self._clean_latex_response(response.content)
-                console.print(f"[green]  ✓ 完成 ({len(section.final_latex)} 字符)[/green]")
+                chapter.final_latex = self._clean_latex_response(response.content)
+                console.print(f"[green]  ✓ 完成 ({len(chapter.final_latex)} 字符)[/green]")
             else:
                 # 如果润色失败，使用草稿
-                section.final_latex = section.draft_latex
+                chapter.final_latex = chapter.draft_latex
                 console.print(f"[yellow]  ⚠ 润色失败，使用草稿[/yellow]")
 
         paper.status = PaperStatus.FINAL
