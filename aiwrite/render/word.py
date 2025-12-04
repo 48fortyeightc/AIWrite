@@ -14,7 +14,7 @@ from typing import Literal, TYPE_CHECKING
 
 from rich.console import Console
 
-from ..models import Paper, Section
+from ..models import Paper, Section, Figure
 from .latex import LatexRenderer
 
 if TYPE_CHECKING:
@@ -38,6 +38,7 @@ class WordExporter:
         method: Literal["pandoc", "docx"] = "docx",
         pandoc_path: str | None = None,
         reference_doc: str | Path | None = None,
+        images_base_path: str | Path | None = None,
     ):
         """
         初始化导出器
@@ -46,10 +47,12 @@ class WordExporter:
             method: 导出方法，"pandoc" 或 "docx"（默认改为 docx）
             pandoc_path: pandoc 可执行文件路径
             reference_doc: Word 参考模板文件（用于样式）
+            images_base_path: 图片文件的基础路径
         """
         self.method = method
         self.pandoc_path = pandoc_path or self._find_pandoc()
         self.reference_doc = Path(reference_doc) if reference_doc else None
+        self.images_base_path = Path(images_base_path) if images_base_path else None
         self.latex_renderer = LatexRenderer()
 
     def _find_pandoc(self) -> str | None:
@@ -297,7 +300,8 @@ class WordExporter:
         is_first_section: bool = False,
     ) -> None:
         """添加章节到 Word 文档"""
-        from docx.shared import Pt, Cm
+        from docx.shared import Pt, Cm, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
 
         # 获取内容
@@ -326,7 +330,11 @@ class WordExporter:
 
         if content:
             # 解析 LaTeX 内容并添加到文档（包括处理 \subsection）
-            self._add_latex_content_to_doc(doc, content, level)
+            self._add_latex_content_to_doc(doc, content, level, section.figures)
+        
+        # 如果没有内容但有图片，单独添加图片
+        if not content and section.figures:
+            self._add_figures_to_doc(doc, section.figures)
 
         # 只有当内容中没有包含子章节时，才递归处理子章节
         # 避免重复输出
@@ -334,16 +342,96 @@ class WordExporter:
             for child in section.children:
                 self._add_section_to_doc(doc, child, use_final, level + 1)
 
+    def _add_figures_to_doc(
+        self,
+        doc: "Document",
+        figures: list[Figure],
+    ) -> None:
+        """添加图片到文档"""
+        from docx.shared import Pt, Cm, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml.ns import qn
+
+        for figure in figures:
+            # 确定图片路径
+            if self.images_base_path:
+                image_path = self.images_base_path / figure.path
+            else:
+                image_path = Path(figure.path)
+            
+            # 添加图片
+            if image_path.exists():
+                try:
+                    # 添加图片（宽度为页面宽度的 80%）
+                    para = doc.add_paragraph()
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = para.add_run()
+                    run.add_picture(str(image_path), width=Inches(5))
+                    
+                    # 添加图片标题
+                    caption_para = doc.add_paragraph()
+                    caption_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    caption_run = caption_para.add_run(f"图 {figure.id}: {figure.caption}")
+                    caption_run.font.name = '宋体'
+                    caption_run.font.size = Pt(10)
+                    caption_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                    caption_para.paragraph_format.first_line_indent = Cm(0)
+                    caption_para.space_after = Pt(12)
+                    
+                    console.print(f"[green]  ✓ 插入图片: {figure.caption}[/green]")
+                except Exception as e:
+                    console.print(f"[yellow]  ⚠ 图片插入失败 {figure.path}: {e}[/yellow]")
+                    # 添加占位符
+                    self._add_figure_placeholder(doc, figure)
+            else:
+                console.print(f"[yellow]  ⚠ 图片不存在: {image_path}[/yellow]")
+                # 添加占位符
+                self._add_figure_placeholder(doc, figure)
+
+    def _add_figure_placeholder(
+        self,
+        doc: "Document",
+        figure: Figure,
+    ) -> None:
+        """添加图片占位符"""
+        from docx.shared import Pt, Cm
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml.ns import qn
+
+        para = doc.add_paragraph()
+        para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = para.add_run(f"[图 {figure.id}: {figure.caption}]")
+        run.font.name = '宋体'
+        run.font.size = Pt(10)
+        run.italic = True
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+        para.paragraph_format.first_line_indent = Cm(0)
+        
+        if figure.description:
+            desc_para = doc.add_paragraph()
+            desc_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            desc_run = desc_para.add_run(f"（{figure.description[:100]}...）" if len(figure.description) > 100 else f"（{figure.description}）")
+            desc_run.font.name = '宋体'
+            desc_run.font.size = Pt(9)
+            desc_run.italic = True
+            desc_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+            desc_para.paragraph_format.first_line_indent = Cm(0)
+
     def _add_latex_content_to_doc(
         self,
         doc: "Document",
         latex_content: str,
         base_level: int = 1,
+        figures: list[Figure] | None = None,
     ) -> None:
         """将 LaTeX 内容转换并添加到 Word 文档"""
-        from docx.shared import Pt, Cm
+        from docx.shared import Pt, Cm, Inches
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
+
+        figures = figures or []
+        figure_map = {f.id: f for f in figures}
+        figures_inserted = set()
 
         # 先处理 LaTeX 转义符号
         content = latex_content
@@ -358,9 +446,9 @@ class WordExporter:
         # 处理数学公式 $...$
         content = re.sub(r"\$([^$]+)\$", r"\1", content)
         
-        # 处理图表占位符
-        content = re.sub(r"\{\{FIGURE:([^:]*):([^}]*)\}\}", r"\n\n[图: \1]\n说明: \2\n\n", content)
-        content = re.sub(r"\{\{TABLE:([^:]*):([^}]*)\}\}", r"\n\n[表: \1]\n说明: \2\n\n", content)
+        # 处理图表占位符 - 转换为特殊标记以便后续处理
+        content = re.sub(r"\{\{FIGURE:([^:]*):([^}]*)\}\}", r"\n\n<<FIGURE:\1:\2>>\n\n", content)
+        content = re.sub(r"\{\{TABLE:([^:]*):([^}]*)\}\}", r"\n\n<<TABLE:\1:\2>>\n\n", content)
         
         # 处理 \textbf{...} - 保留内容
         content = re.sub(r"\\textbf\{([^}]*)\}", r"\1", content)
@@ -411,29 +499,130 @@ class WordExporter:
                 heading.paragraph_format.first_line_indent = Cm(0)
                 continue
             
-            # 合并段落内的换行
-            para_text = re.sub(r"\s*\n\s*", " ", para_text)
-            para_text = re.sub(r"\s+", " ", para_text).strip()
+            # 检查是否是图片标记
+            figure_match = re.match(r"<<FIGURE:([^:]*):([^>]*)>>", para_text)
+            if figure_match:
+                fig_caption = figure_match.group(1).strip()
+                fig_desc = figure_match.group(2).strip()
+                
+                # 尝试查找匹配的真实图片
+                matched_figure = None
+                for fig_id, fig in figure_map.items():
+                    if fig.caption == fig_caption or fig_id not in figures_inserted:
+                        matched_figure = fig
+                        figures_inserted.add(fig_id)
+                        break
+                
+                if matched_figure:
+                    # 插入真实图片
+                    self._insert_figure(doc, matched_figure)
+                else:
+                    # 添加占位符
+                    para = doc.add_paragraph()
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = para.add_run(f"[图: {fig_caption}]")
+                    run.font.name = '宋体'
+                    run.font.size = Pt(10)
+                    run.italic = True
+                    run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                    para.paragraph_format.first_line_indent = Cm(0)
+                    
+                    if fig_desc:
+                        desc_para = doc.add_paragraph()
+                        desc_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                        desc_run = desc_para.add_run(f"说明: {fig_desc}")
+                        desc_run.font.name = '宋体'
+                        desc_run.font.size = Pt(9)
+                        desc_run.italic = True
+                        desc_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                        desc_para.paragraph_format.first_line_indent = Cm(0)
+                continue
             
-            # 检查是否是图表占位符
-            if para_text.startswith("[图:") or para_text.startswith("[表:") or para_text.startswith("说明:"):
+            # 检查是否是表格标记
+            table_match = re.match(r"<<TABLE:([^:]*):([^>]*)>>", para_text)
+            if table_match:
+                tab_caption = table_match.group(1).strip()
+                tab_desc = table_match.group(2).strip()
+                
                 para = doc.add_paragraph()
                 para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                run = para.add_run(para_text)
+                run = para.add_run(f"[表: {tab_caption}]")
                 run.font.name = '宋体'
                 run.font.size = Pt(10)
                 run.italic = True
                 run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
                 para.paragraph_format.first_line_indent = Cm(0)
-            else:
-                # 普通段落
+                
+                if tab_desc:
+                    desc_para = doc.add_paragraph()
+                    desc_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    desc_run = desc_para.add_run(f"说明: {tab_desc}")
+                    desc_run.font.name = '宋体'
+                    desc_run.font.size = Pt(9)
+                    desc_run.italic = True
+                    desc_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                    desc_para.paragraph_format.first_line_indent = Cm(0)
+                continue
+            
+            # 合并段落内的换行
+            para_text = re.sub(r"\s*\n\s*", " ", para_text)
+            para_text = re.sub(r"\s+", " ", para_text).strip()
+            
+            # 普通段落
+            para = doc.add_paragraph()
+            run = para.add_run(para_text)
+            run.font.name = '宋体'
+            run.font.size = Pt(12)
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+            para.paragraph_format.first_line_indent = Cm(0.74)  # 首行缩进
+            para.paragraph_format.line_spacing = 1.5
+        
+        # 插入剩余未插入的图片（在内容末尾）
+        for fig_id, fig in figure_map.items():
+            if fig_id not in figures_inserted:
+                self._insert_figure(doc, fig)
+
+    def _insert_figure(
+        self,
+        doc: "Document",
+        figure: Figure,
+    ) -> None:
+        """插入单张图片"""
+        from docx.shared import Pt, Cm, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml.ns import qn
+
+        # 确定图片路径
+        if self.images_base_path:
+            image_path = self.images_base_path / figure.path
+        else:
+            image_path = Path(figure.path)
+        
+        if image_path.exists():
+            try:
+                # 添加图片
                 para = doc.add_paragraph()
-                run = para.add_run(para_text)
-                run.font.name = '宋体'
-                run.font.size = Pt(12)
-                run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
-                para.paragraph_format.first_line_indent = Cm(0.74)  # 首行缩进
-                para.paragraph_format.line_spacing = 1.5
+                para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                run = para.add_run()
+                run.add_picture(str(image_path), width=Inches(5))
+                
+                # 添加图片标题
+                caption_para = doc.add_paragraph()
+                caption_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                caption_run = caption_para.add_run(f"图 {figure.id}: {figure.caption}")
+                caption_run.font.name = '宋体'
+                caption_run.font.size = Pt(10)
+                caption_run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                caption_para.paragraph_format.first_line_indent = Cm(0)
+                caption_para.space_after = Pt(12)
+                
+                console.print(f"[green]  ✓ 插入图片: {figure.caption}[/green]")
+            except Exception as e:
+                console.print(f"[yellow]  ⚠ 图片插入失败 {figure.path}: {e}[/yellow]")
+                self._add_figure_placeholder(doc, figure)
+        else:
+            console.print(f"[yellow]  ⚠ 图片不存在: {image_path}[/yellow]")
+            self._add_figure_placeholder(doc, figure)
 
     def _strip_latex_commands(self, text: str) -> str:
         """移除 LaTeX 命令，保留文本内容"""

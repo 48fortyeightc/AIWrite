@@ -1,0 +1,88 @@
+paper:
+  title: "基于深度学习的图像分类系统设计与实现"
+  authors:
+    - "张三"
+  keywords:
+    - "深度学习"
+    - "图像分类"
+    - "CNN"
+    - "迁移学习"
+  language: "zh"
+  style: "academic"
+  target_words: 15000
+  status: "outline_confirmed"
+
+sections:
+  # 摘要
+  - id: "abstract-zh"
+    title: "摘要"
+    level: 0
+    target_words: 500
+
+  # 第一章
+  - id: "ch1"
+    title: "第一章 绪论"
+    level: 1
+    target_words: 2000
+
+  # 第二章
+  - id: "ch2"
+    title: "第二章 相关技术"
+    level: 1
+    target_words: 2500
+
+  # 第三章 - 系统设计（包含图片）
+  - id: "ch3"
+    title: "第三章 系统设计"
+    level: 1
+    target_words: 3000
+    notes: "本章需要展示系统架构图和模块设计"
+    figures:
+      - id: "fig3-1"
+        path: "images/system_architecture.png"
+        caption: "系统总体架构图"
+      - id: "fig3-2"
+        path: "images/module_design.png"
+        caption: "模块设计图"
+    children:
+      - id: "ch3.1"
+        title: "3.1 系统总体架构"
+        level: 2
+        notes: "描述系统的整体架构，引用系统架构图"
+      - id: "ch3.2"
+        title: "3.2 模块设计"
+        level: 2
+        notes: "描述各模块的设计，引用模块设计图"
+
+  # 第四章 - 实验结果（包含图片）
+  - id: "ch4"
+    title: "第四章 实验与分析"
+    level: 1
+    target_words: 2500
+    notes: "本章需要展示实验结果图"
+    figures:
+      - id: "fig4-1"
+        path: "images/training_curve.png"
+        caption: "模型训练曲线"
+      - id: "fig4-2"
+        path: "images/confusion_matrix.png"
+        caption: "混淆矩阵"
+    children:
+      - id: "ch4.1"
+        title: "4.1 实验设置"
+        level: 2
+      - id: "ch4.2"
+        title: "4.2 实验结果"
+        level: 2
+        notes: "展示训练曲线和混淆矩阵"
+
+  # 第五章
+  - id: "ch5"
+    title: "第五章 总结与展望"
+    level: 1
+    target_words: 1500
+
+  # 参考文献
+  - id: "refs"
+    title: "参考文献"
+    level: 0

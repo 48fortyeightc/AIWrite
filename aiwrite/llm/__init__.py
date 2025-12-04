@@ -10,6 +10,11 @@ from .providers import (
     OpenAICompatibleProvider,
     create_provider,
 )
+from .vision import (
+    VisionProvider,
+    DoubaoVisionProvider,
+    create_vision_provider,
+)
 
 __all__ = [
     "LLMProvider",
@@ -20,4 +25,7 @@ __all__ = [
     "DeepSeekProvider",
     "KimiProvider",
     "create_provider",
+    "VisionProvider",
+    "DoubaoVisionProvider",
+    "create_vision_provider",
 ]

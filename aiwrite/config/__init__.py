@@ -8,6 +8,7 @@ from .settings import (
     load_config,
     create_thinking_provider,
     create_writing_provider,
+    create_vision_llm_provider,
     load_outline,
     save_outline,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "load_config",
     "create_thinking_provider",
     "create_writing_provider",
+    "create_vision_llm_provider",
     "load_outline",
     "save_outline",
 ]

@@ -391,3 +391,71 @@ def build_abstract_en_prompt(paper: Paper, chinese_abstract: str) -> str:
         keywords=", ".join(paper.keywords) if paper.keywords else "N/A",
         chinese_abstract=chinese_abstract,
     )
+
+
+# ============================================================================
+# 图片识别 Prompt
+# ============================================================================
+
+IMAGE_ANALYSIS_PROMPT = """你是一位学术论文图片分析专家。请仔细分析这张图片，并为学术论文写作提供详细的描述。
+
+## 论文信息
+**论文标题**：{paper_title}
+**图片标题**：{figure_caption}
+**所属章节**：{section_title}
+
+## 分析任务
+
+请分析这张图片并输出以下内容：
+
+### 1. 图片内容描述
+详细描述图片中展示的内容，包括：
+- 图片类型（架构图/流程图/数据图表/界面截图/实验结果等）
+- 主要组成部分和元素
+- 各部分之间的关系
+
+### 2. 技术细节
+如果图片包含技术内容，请说明：
+- 涉及的技术概念
+- 数据或指标（如有）
+- 重要的标注或说明
+
+### 3. 论文写作建议
+针对这张图片在论文中的使用，建议：
+- 应该在正文中如何引用和描述这张图
+- 可以强调的关键点
+- 与上下文内容的衔接方式
+
+## 输出格式
+请按以下格式输出（不要使用 Markdown 代码块）：
+
+【图片类型】：（如：系统架构图）
+【内容概述】：（一句话概括图片内容）
+【详细描述】：（2-3段详细描述）
+【技术要点】：（列出3-5个技术要点）
+【写作建议】：（如何在论文中描述这张图）
+"""
+
+
+def build_image_analysis_prompt(
+    paper_title: str,
+    figure_caption: str,
+    section_title: str,
+) -> str:
+    """
+    构建图片分析 Prompt
+    
+    Args:
+        paper_title: 论文标题
+        figure_caption: 图片标题
+        section_title: 所属章节标题
+        
+    Returns:
+        完整的 Prompt 字符串
+    """
+    return IMAGE_ANALYSIS_PROMPT.format(
+        paper_title=paper_title,
+        figure_caption=figure_caption,
+        section_title=section_title,
+    )
+

@@ -5,20 +5,24 @@ Pipeline 步骤实现
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import yaml
 from rich.console import Console
 
 from ..llm import LLMProvider
-from ..models import Paper, Section, PaperStatus, PipelineStep, PipelineContext, LLMOptions
+from ..models import Paper, Section, PaperStatus, PipelineStep, PipelineContext, LLMOptions, Figure
 from ..prompts import (
     build_outline_prompt, 
     build_chapter_draft_prompt, 
     build_section_refine_prompt,
     build_abstract_prompt,
     build_abstract_en_prompt,
+    build_image_analysis_prompt,
 )
+
+if TYPE_CHECKING:
+    from ..llm import VisionProvider
 
 
 console = Console()
@@ -444,3 +448,103 @@ class AbstractGenerateStep(PipelineStep):
         """判断是否是参考文献章节"""
         title_lower = section.title.lower()
         return "参考文献" in title_lower or "references" in title_lower
+
+
+class ImageAnalyzeStep(PipelineStep):
+    """
+    图片识别步骤
+    
+    使用视觉模型分析论文中的图片，生成描述信息
+    """
+
+    def __init__(self, vision_provider: "VisionProvider", base_path: str = ""):
+        from ..llm import VisionProvider
+        self.vision_provider: VisionProvider = vision_provider
+        self.base_path = base_path  # 图片的基础路径
+
+    @property
+    def name(self) -> str:
+        return "image_analyze"
+
+    @property
+    def description(self) -> str:
+        return "分析论文中的图片，生成描述"
+
+    async def execute(self, context: PipelineContext) -> PipelineContext:
+        """执行图片识别"""
+        from pathlib import Path
+        from ..prompts import build_image_analysis_prompt
+
+        paper = context.paper
+        console.print("[bold blue]🖼️ 正在分析图片...[/bold blue]")
+
+        # 收集所有图片
+        all_figures = self._collect_all_figures(paper)
+        
+        if not all_figures:
+            console.print("[yellow]未发现需要分析的图片[/yellow]")
+            return context
+
+        console.print(f"[dim]发现 {len(all_figures)} 张图片需要分析[/dim]")
+
+        options = context.llm_options or LLMOptions()
+
+        for section, figure in all_figures:
+            # 构建图片完整路径
+            if self.base_path:
+                image_path = Path(self.base_path) / figure.path
+            else:
+                image_path = Path(figure.path)
+
+            if not image_path.exists():
+                console.print(f"[yellow]⚠ 图片不存在: {image_path}[/yellow]")
+                continue
+
+            console.print(f"[dim]  分析图片: {figure.caption}[/dim]")
+
+            # 构建分析提示词
+            prompt = build_image_analysis_prompt(
+                paper_title=paper.title,
+                figure_caption=figure.caption,
+                section_title=section.title,
+            )
+
+            try:
+                # 调用视觉模型
+                response = await self.vision_provider.analyze_image(
+                    image_path=str(image_path),
+                    prompt=prompt,
+                    options=options,
+                )
+
+                if response.content:
+                    figure.description = response.content
+                    console.print(f"[green]  ✓ {figure.caption} 分析完成[/green]")
+                else:
+                    console.print(f"[yellow]  ⚠ {figure.caption} 分析无结果[/yellow]")
+
+            except Exception as e:
+                console.print(f"[red]  ✗ {figure.caption} 分析失败: {e}[/red]")
+
+        context.paper = paper
+        console.print("[bold green]✓ 图片分析完成[/bold green]")
+
+        return context
+
+    def _collect_all_figures(self, paper: Paper) -> list[tuple[Section, "Figure"]]:
+        """收集所有章节中的图片"""
+        from ..models import Figure
+        
+        results: list[tuple[Section, Figure]] = []
+
+        def collect_from_section(section: Section):
+            for figure in section.figures:
+                results.append((section, figure))
+            for child in section.children:
+                collect_from_section(child)
+
+        for section in paper.sections:
+            collect_from_section(section)
+
+        return results
+

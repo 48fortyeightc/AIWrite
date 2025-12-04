@@ -19,6 +19,23 @@ class PaperStatus(str, Enum):
     FINAL = "final"                           # 最终版
 
 
+class Figure(BaseModel):
+    """图片数据模型"""
+    id: str = Field(..., description="图片唯一标识，如 fig3-1")
+    path: str = Field(..., description="图片文件路径（相对于项目根目录或绝对路径）")
+    caption: str = Field(..., description="图片标题")
+    description: str | None = Field(default=None, description="AI 识别的图片描述")
+    position: str = Field(default="here", description="图片位置：here, top, bottom")
+
+
+class Table(BaseModel):
+    """表格数据模型"""
+    id: str = Field(..., description="表格唯一标识，如 tab3-1")
+    caption: str = Field(..., description="表格标题")
+    content: str | None = Field(default=None, description="表格内容（LaTeX 格式或 Markdown）")
+    description: str | None = Field(default=None, description="表格说明")
+
+
 class Section(BaseModel):
     """章节数据模型"""
     id: str = Field(..., description="章节唯一标识，如 ch1, ch1.1")
@@ -28,6 +45,8 @@ class Section(BaseModel):
     style: str | None = Field(default=None, description="写作风格")
     notes: str | None = Field(default=None, description="写作要点说明")
     children: list[Section] = Field(default_factory=list, description="子章节列表")
+    figures: list[Figure] = Field(default_factory=list, description="本章节包含的图片")
+    tables: list[Table] = Field(default_factory=list, description="本章节包含的表格")
     draft_latex: str | None = Field(default=None, description="草稿版 LaTeX 正文")
     final_latex: str | None = Field(default=None, description="最终版 LaTeX 正文")
 

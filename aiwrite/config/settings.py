@@ -12,8 +12,8 @@ import yaml
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
-from ..llm import LLMPurpose, create_provider, LLMProvider
-from ..models import Paper, Section, PaperStatus
+from ..llm import LLMPurpose, create_provider, LLMProvider, create_vision_provider, VisionProvider
+from ..models import Paper, Section, PaperStatus, Figure, Table
 
 
 class LLMConfig(BaseModel):
@@ -29,6 +29,7 @@ class AppConfig(BaseModel):
     thinking_llm: LLMConfig = Field(..., description="思考模型配置")
     writing_llm: LLMConfig = Field(..., description="写作模型配置")
     writing_alt_llm: LLMConfig | None = Field(default=None, description="备选写作模型")
+    vision_llm: LLMConfig | None = Field(default=None, description="视觉模型配置")
     max_tokens: int = Field(default=8192, description="最大 Token 数")
     temperature: float = Field(default=0.3, description="温度参数")
     
@@ -78,10 +79,19 @@ def load_config(env_file: str | Path | None = None) -> AppConfig:
             provider_type="kimi",
         )
 
+    # 视觉模型配置（默认使用思考模型的 API Key，因为豆包视觉模型也在火山引擎）
+    vision_llm = LLMConfig(
+        api_key=os.getenv("VISION_API_KEY", os.getenv("THINKING_API_KEY", "")),
+        base_url=os.getenv("VISION_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3"),
+        model=os.getenv("VISION_MODEL", "doubao-1-5-vision-pro-32k-250115"),
+        provider_type="doubao_vision",
+    )
+
     return AppConfig(
         thinking_llm=thinking_llm,
         writing_llm=writing_llm,
         writing_alt_llm=writing_alt_llm,
+        vision_llm=vision_llm,
         max_tokens=int(os.getenv("AIWRITE_LLM_MAX_TOKENS", "8192")),
         temperature=float(os.getenv("AIWRITE_LLM_TEMPERATURE", "0.3")),
         db_host=os.getenv("DB_HOST", "localhost"),
@@ -115,6 +125,22 @@ def create_writing_provider(config: AppConfig, use_alt: bool = False) -> LLMProv
     )
 
 
+def create_vision_llm_provider(config: AppConfig) -> VisionProvider:
+    """创建视觉模型 Provider"""
+    if config.vision_llm:
+        return create_vision_provider(
+            api_key=config.vision_llm.api_key,
+            base_url=config.vision_llm.base_url,
+            model=config.vision_llm.model,
+        )
+    # 如果没有配置视觉模型，使用思考模型的配置
+    return create_vision_provider(
+        api_key=config.thinking_llm.api_key,
+        base_url=config.thinking_llm.base_url,
+        model="doubao-1-5-vision-pro-32k-250115",
+    )
+
+
 def load_outline(file_path: str | Path) -> Paper:
     """
     从 YAML 文件加载论文大纲
@@ -131,8 +157,27 @@ def load_outline(file_path: str | Path) -> Paper:
     paper_data = data.get("paper", {})
     sections_data = data.get("sections", [])
 
+    def parse_figure(f: dict[str, Any]) -> Figure:
+        return Figure(
+            id=f.get("id", ""),
+            path=f.get("path", ""),
+            caption=f.get("caption", ""),
+            description=f.get("description"),
+            position=f.get("position", "here"),
+        )
+
+    def parse_table(t: dict[str, Any]) -> Table:
+        return Table(
+            id=t.get("id", ""),
+            caption=t.get("caption", ""),
+            content=t.get("content"),
+            description=t.get("description"),
+        )
+
     def parse_section(s: dict[str, Any]) -> Section:
         children = [parse_section(c) for c in s.get("children", [])]
+        figures = [parse_figure(f) for f in s.get("figures", [])]
+        tables = [parse_table(t) for t in s.get("tables", [])]
         return Section(
             id=s["id"],
             title=s["title"],
@@ -141,6 +186,8 @@ def load_outline(file_path: str | Path) -> Paper:
             style=s.get("style"),
             notes=s.get("notes"),
             children=children,
+            figures=figures,
+            tables=tables,
             draft_latex=s.get("draft_latex"),
             final_latex=s.get("final_latex"),
         )
@@ -173,6 +220,29 @@ def save_outline(paper: Paper, file_path: str | Path) -> None:
         paper: Paper 实例
         file_path: 输出文件路径
     """
+    def figure_to_dict(f: Figure) -> dict[str, Any]:
+        d: dict[str, Any] = {
+            "id": f.id,
+            "path": f.path,
+            "caption": f.caption,
+        }
+        if f.description:
+            d["description"] = f.description
+        if f.position != "here":
+            d["position"] = f.position
+        return d
+
+    def table_to_dict(t: Table) -> dict[str, Any]:
+        d: dict[str, Any] = {
+            "id": t.id,
+            "caption": t.caption,
+        }
+        if t.content:
+            d["content"] = t.content
+        if t.description:
+            d["description"] = t.description
+        return d
+
     def section_to_dict(s: Section) -> dict[str, Any]:
         d: dict[str, Any] = {
             "id": s.id,
@@ -185,6 +255,10 @@ def save_outline(paper: Paper, file_path: str | Path) -> None:
             d["style"] = s.style
         if s.notes:
             d["notes"] = s.notes
+        if s.figures:
+            d["figures"] = [figure_to_dict(f) for f in s.figures]
+        if s.tables:
+            d["tables"] = [table_to_dict(t) for t in s.tables]
         if s.children:
             d["children"] = [section_to_dict(c) for c in s.children]
         if s.draft_latex:

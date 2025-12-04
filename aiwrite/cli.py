@@ -25,9 +25,10 @@ from .config import (
     save_outline,
     create_thinking_provider,
     create_writing_provider,
+    create_vision_llm_provider,
 )
 from .models import Paper, PaperStatus, LLMOptions
-from .pipeline import OutlineSuggestStep, SectionDraftStep, SectionRefineStep, AbstractGenerateStep, PipelineExecutor
+from .pipeline import OutlineSuggestStep, SectionDraftStep, SectionRefineStep, AbstractGenerateStep, ImageAnalyzeStep, PipelineExecutor
 from .render import LatexRenderer, WordExporter
 
 
@@ -199,6 +200,11 @@ def finalize(
         "--output", "-o",
         help="输出目录（默认为 output/）",
     ),
+    images_dir: Optional[Path] = typer.Option(
+        None,
+        "--images", "-i",
+        help="图片目录路径（用于在 Word 中插入真实图片）",
+    ),
     env_file: Optional[Path] = typer.Option(
         None,
         "--env", "-e",
@@ -301,8 +307,10 @@ def finalize(
     # 转换为 Word
     if not latex_only:
         console.print("\n[bold blue]📝 生成 Word 文档...[/bold blue]")
+        # 确定图片基础路径
+        images_base_path = str(images_dir) if images_dir else str(input_file.parent)
         # 默认使用 docx 方法，因为用户可能没有安装 pandoc
-        word_exporter = WordExporter(method="docx")
+        word_exporter = WordExporter(method="docx", images_base_path=images_base_path)
 
         word_path = output_dir / f"{safe_title}.docx"
         try:
@@ -349,6 +357,81 @@ def status(
 
     # 大纲概览
     display_outline(paper)
+
+
+@app.command("analyze-images")
+def analyze_images(
+    input_file: Path = typer.Argument(
+        ...,
+        help="输入的论文 YAML 文件路径",
+        exists=True,
+    ),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--output", "-o",
+        help="输出文件路径（默认覆盖输入文件）",
+    ),
+    images_dir: Optional[Path] = typer.Option(
+        None,
+        "--images", "-i",
+        help="图片目录路径",
+    ),
+    env_file: Optional[Path] = typer.Option(
+        None,
+        "--env", "-e",
+        help=".env 配置文件路径",
+    ),
+) -> None:
+    """
+    分析论文中的图片
+    
+    使用视觉模型（如 doubao-vision）分析 YAML 中定义的图片，
+    生成图片描述供写作参考。
+    """
+    console.print(Panel(
+        "[bold]AIWrite 图片分析[/bold]\n"
+        f"输入文件: {input_file}",
+        border_style="blue",
+    ))
+
+    config = load_config(env_file)
+    paper = load_outline(input_file)
+
+    console.print(f"[cyan]论文标题: {paper.title}[/cyan]")
+
+    # 确定图片基础路径
+    base_path = str(images_dir) if images_dir else str(input_file.parent)
+
+    # 创建视觉模型
+    vision_provider = create_vision_llm_provider(config)
+    console.print(f"[dim]使用模型: {vision_provider.model}[/dim]")
+
+    # 执行图片识别
+    step = ImageAnalyzeStep(vision_provider, base_path=base_path)
+
+    async def run():
+        from .models import PipelineContext, LLMOptions
+        context = PipelineContext(
+            paper=paper,
+            llm_options=LLMOptions(
+                max_tokens=config.max_tokens,
+                temperature=config.temperature,
+            ),
+        )
+        return await step.execute(context)
+
+    result = asyncio.run(run())
+
+    # 保存结果
+    output_path = output_file or input_file
+    save_outline(result.paper, output_path)
+    console.print(f"\n[green]✓ 图片分析结果已保存到: {output_path}[/green]")
+
+    # 显示分析结果概要
+    total_figures = sum(len(s.figures) for s in result.paper.get_all_sections())
+    analyzed = sum(1 for s in result.paper.get_all_sections() 
+                   for f in s.figures if f.description)
+    console.print(f"[dim]共 {total_figures} 张图片，已分析 {analyzed} 张[/dim]")
 
 
 def display_outline(paper: Paper) -> None:

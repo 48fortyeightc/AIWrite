@@ -8,6 +8,7 @@ from .steps import (
     SectionDraftStep,
     SectionRefineStep,
     AbstractGenerateStep,
+    ImageAnalyzeStep,
 )
 from .executor import PipelineExecutor
 
@@ -17,5 +18,6 @@ __all__ = [
     "SectionDraftStep",
     "SectionRefineStep",
     "AbstractGenerateStep",
+    "ImageAnalyzeStep",
     "PipelineExecutor",
 ]

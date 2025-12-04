@@ -9,12 +9,14 @@ from .templates import (
     SECTION_REFINE_PROMPT,
     ABSTRACT_GENERATE_PROMPT,
     ABSTRACT_EN_GENERATE_PROMPT,
+    IMAGE_ANALYSIS_PROMPT,
     build_outline_prompt,
     build_chapter_draft_prompt,
     build_section_draft_prompt,
     build_section_refine_prompt,
     build_abstract_prompt,
     build_abstract_en_prompt,
+    build_image_analysis_prompt,
 )
 
 __all__ = [
@@ -24,10 +26,12 @@ __all__ = [
     "SECTION_REFINE_PROMPT",
     "ABSTRACT_GENERATE_PROMPT",
     "ABSTRACT_EN_GENERATE_PROMPT",
+    "IMAGE_ANALYSIS_PROMPT",
     "build_outline_prompt",
     "build_chapter_draft_prompt",
     "build_section_draft_prompt",
     "build_section_refine_prompt",
     "build_abstract_prompt",
     "build_abstract_en_prompt",
+    "build_image_analysis_prompt",
 ]
