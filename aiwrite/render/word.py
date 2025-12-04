@@ -300,18 +300,6 @@ class WordExporter:
         from docx.shared import Pt, Cm
         from docx.oxml.ns import qn
 
-        # 添加标题（使用 Word 内置标题样式，支持目录生成）
-        heading_level = min(level, 9)
-        heading = doc.add_heading(section.title, level=heading_level)
-        
-        # 设置标题字体
-        for run in heading.runs:
-            run.font.name = '黑体'
-            run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
-        
-        # 标题不缩进
-        heading.paragraph_format.first_line_indent = Cm(0)
-
         # 获取内容
         content = ""
         if use_final and section.final_latex:
@@ -319,32 +307,62 @@ class WordExporter:
         elif section.draft_latex:
             content = section.draft_latex
 
-        if content:
-            # 解析 LaTeX 内容并添加到文档
-            self._add_latex_content_to_doc(doc, content)
+        # 检查内容中是否包含 \subsection（说明内容已经包含子标题）
+        has_subsections_in_content = bool(re.search(r"\\subsection\{", content))
+        
+        # 只有当内容中没有包含子标题时，才添加标题
+        # 否则标题会由 _add_latex_content_to_doc 处理
+        if not has_subsections_in_content or section.level == 0:
+            # 添加标题（使用 Word 内置标题样式）
+            heading_level = min(level, 9)
+            heading = doc.add_heading(section.title, level=heading_level)
+            
+            # 设置标题字体
+            for run in heading.runs:
+                run.font.name = '黑体'
+                run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
+            
+            heading.paragraph_format.first_line_indent = Cm(0)
 
-        # 递归处理子章节
-        for child in section.children:
-            self._add_section_to_doc(doc, child, use_final, level + 1)
+        if content:
+            # 解析 LaTeX 内容并添加到文档（包括处理 \subsection）
+            self._add_latex_content_to_doc(doc, content, level)
+
+        # 只有当内容中没有包含子章节时，才递归处理子章节
+        # 避免重复输出
+        if not has_subsections_in_content:
+            for child in section.children:
+                self._add_section_to_doc(doc, child, use_final, level + 1)
 
     def _add_latex_content_to_doc(
         self,
         doc: "Document",
         latex_content: str,
+        base_level: int = 1,
     ) -> None:
         """将 LaTeX 内容转换并添加到 Word 文档"""
         from docx.shared import Pt, Cm
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
 
-        # 移除 \section{} 和 \subsection{} 命令（标题已单独处理）
-        content = re.sub(r"\\(chapter|section|subsection|subsubsection)\{[^}]*\}", "\n\n", latex_content)
+        # 先处理 LaTeX 转义符号
+        content = latex_content
+        content = content.replace("\\%", "%")
+        content = content.replace("\\$", "$")
+        content = content.replace("\\&", "&")
+        content = content.replace("\\#", "#")
+        content = content.replace("\\_", "_")
+        content = content.replace("\\{", "{")
+        content = content.replace("\\}", "}")
+        
+        # 处理数学公式 $...$
+        content = re.sub(r"\$([^$]+)\$", r"\1", content)
         
         # 处理图表占位符
         content = re.sub(r"\{\{FIGURE:([^:]*):([^}]*)\}\}", r"\n\n[图: \1]\n说明: \2\n\n", content)
         content = re.sub(r"\{\{TABLE:([^:]*):([^}]*)\}\}", r"\n\n[表: \1]\n说明: \2\n\n", content)
         
-        # 处理 \textbf{...} - 保留内容，加粗标记
+        # 处理 \textbf{...} - 保留内容
         content = re.sub(r"\\textbf\{([^}]*)\}", r"\1", content)
         
         # 处理 \textit{...} 和 \emph{...}
@@ -353,6 +371,12 @@ class WordExporter:
         
         # 处理 \cite{...}
         content = re.sub(r"\\cite\{[^}]*\}", "[引用]", content)
+        
+        # 使用特殊标记分割章节和内容
+        # 将 \section{...} \subsection{...} 等替换为特殊标记
+        content = re.sub(r"\\section\{([^}]*)\}", r"\n\n<<HEADING:1:\1>>\n\n", content)
+        content = re.sub(r"\\subsection\{([^}]*)\}", r"\n\n<<HEADING:2:\1>>\n\n", content)
+        content = re.sub(r"\\subsubsection\{([^}]*)\}", r"\n\n<<HEADING:3:\1>>\n\n", content)
         
         # 移除其他 LaTeX 命令但保留内容
         content = re.sub(r"\\[a-zA-Z]+\*?\{([^}]*)\}", r"\1", content)
@@ -368,7 +392,23 @@ class WordExporter:
             para_text = para_text.strip()
             
             # 跳过空段落
-            if not para_text or len(para_text) < 3:
+            if not para_text or len(para_text) < 2:
+                continue
+            
+            # 检查是否是标题标记
+            heading_match = re.match(r"<<HEADING:(\d+):(.+)>>", para_text)
+            if heading_match:
+                heading_rel_level = int(heading_match.group(1))
+                heading_title = heading_match.group(2).strip()
+                # 计算实际的标题级别
+                actual_level = base_level + heading_rel_level - 1
+                actual_level = min(actual_level, 9)
+                
+                heading = doc.add_heading(heading_title, level=actual_level)
+                for run in heading.runs:
+                    run.font.name = '黑体'
+                    run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
+                heading.paragraph_format.first_line_indent = Cm(0)
                 continue
             
             # 合并段落内的换行
@@ -384,7 +424,7 @@ class WordExporter:
                 run.font.size = Pt(10)
                 run.italic = True
                 run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
-                para.paragraph_format.first_line_indent = Cm(0)  # 图表占位符不缩进
+                para.paragraph_format.first_line_indent = Cm(0)
             else:
                 # 普通段落
                 para = doc.add_paragraph()
@@ -392,7 +432,7 @@ class WordExporter:
                 run.font.name = '宋体'
                 run.font.size = Pt(12)
                 run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
-                para.paragraph_format.first_line_indent = Cm(0.74)  # 首行缩进2字符
+                para.paragraph_format.first_line_indent = Cm(0.74)  # 首行缩进
                 para.paragraph_format.line_spacing = 1.5
 
     def _strip_latex_commands(self, text: str) -> str:
