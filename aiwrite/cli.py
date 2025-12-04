@@ -1,0 +1,365 @@
+"""
+AIWrite CLI 命令行入口
+
+提供三个主要命令：
+- suggest-outline: 从用户大纲生成详细小节
+- generate-draft: 生成章节草稿
+- finalize: 润色并导出 Word
+"""
+
+from __future__ import annotations
+
+import asyncio
+from pathlib import Path
+from typing import Optional
+
+import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm
+from rich.table import Table
+
+from .config import (
+    load_config,
+    load_outline,
+    save_outline,
+    create_thinking_provider,
+    create_writing_provider,
+)
+from .models import Paper, PaperStatus, LLMOptions
+from .pipeline import OutlineSuggestStep, SectionDraftStep, SectionRefineStep, PipelineExecutor
+from .render import LatexRenderer, WordExporter
+
+
+app = typer.Typer(
+    name="aiwrite",
+    help="AIWrite - 基于 LLM 的学术论文自动写作系统",
+    add_completion=False,
+)
+
+console = Console()
+
+
+@app.command("suggest-outline")
+def suggest_outline(
+    input_file: Path = typer.Argument(
+        ...,
+        help="输入的大纲 YAML 文件路径",
+        exists=True,
+    ),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--output", "-o",
+        help="输出的详细大纲文件路径（默认覆盖输入文件）",
+    ),
+    env_file: Optional[Path] = typer.Option(
+        None,
+        "--env", "-e",
+        help=".env 配置文件路径",
+    ),
+) -> None:
+    """
+    根据主要章节生成详细的小节结构
+    
+    使用思考模型（如 doubao-seed-thinking）分析论文标题和主要章节，
+    为每个章节生成合理的小节结构。
+    """
+    console.print(Panel(
+        "[bold]AIWrite 大纲生成[/bold]\n"
+        f"输入文件: {input_file}",
+        border_style="blue",
+    ))
+
+    # 加载配置
+    config = load_config(env_file)
+    
+    # 加载大纲
+    paper = load_outline(input_file)
+    
+    console.print(f"[cyan]论文标题: {paper.title}[/cyan]")
+    console.print(f"[cyan]主要章节数: {len(paper.sections)}[/cyan]")
+
+    # 创建思考模型 Provider
+    thinking_provider = create_thinking_provider(config)
+
+    # 执行大纲生成
+    step = OutlineSuggestStep(thinking_provider)
+    
+    async def run():
+        from .models import PipelineContext, LLMOptions
+        context = PipelineContext(
+            paper=paper,
+            llm_options=LLMOptions(
+                max_tokens=config.max_tokens,
+                temperature=config.temperature,
+            ),
+        )
+        return await step.execute(context)
+
+    result = asyncio.run(run())
+
+    # 显示生成的大纲
+    display_outline(result.paper)
+
+    # 保存结果
+    output_path = output_file or input_file
+    save_outline(result.paper, output_path)
+    console.print(f"\n[green]✓ 大纲已保存到: {output_path}[/green]")
+
+    # 提示下一步
+    console.print("\n[dim]请检查生成的大纲，确认后使用以下命令生成草稿:[/dim]")
+    console.print(f"[bold]aiwrite generate-draft {output_path}[/bold]")
+
+
+@app.command("generate-draft")
+def generate_draft(
+    input_file: Path = typer.Argument(
+        ...,
+        help="输入的大纲 YAML 文件路径",
+        exists=True,
+    ),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--output", "-o",
+        help="输出文件路径（默认覆盖输入文件）",
+    ),
+    env_file: Optional[Path] = typer.Option(
+        None,
+        "--env", "-e",
+        help=".env 配置文件路径",
+    ),
+    use_alt: bool = typer.Option(
+        False,
+        "--alt",
+        help="使用备选写作模型",
+    ),
+) -> None:
+    """
+    为论文章节生成草稿内容
+    
+    使用写作模型（如 DeepSeek-V3 或 Kimi-K2）为每个章节生成 LaTeX 格式的草稿。
+    """
+    console.print(Panel(
+        "[bold]AIWrite 草稿生成[/bold]\n"
+        f"输入文件: {input_file}",
+        border_style="blue",
+    ))
+
+    config = load_config(env_file)
+    paper = load_outline(input_file)
+
+    console.print(f"[cyan]论文标题: {paper.title}[/cyan]")
+
+    # 确认大纲
+    if paper.status == PaperStatus.PENDING_OUTLINE:
+        if not Confirm.ask("大纲尚未确认，是否继续生成草稿？"):
+            console.print("[yellow]已取消[/yellow]")
+            raise typer.Exit()
+        paper.status = PaperStatus.OUTLINE_CONFIRMED
+
+    # 创建写作模型
+    writing_provider = create_writing_provider(config, use_alt=use_alt)
+    console.print(f"[dim]使用模型: {writing_provider.model}[/dim]")
+
+    # 执行草稿生成
+    step = SectionDraftStep(writing_provider)
+
+    async def run():
+        from .models import PipelineContext, LLMOptions
+        context = PipelineContext(
+            paper=paper,
+            llm_options=LLMOptions(
+                max_tokens=config.max_tokens,
+                temperature=config.temperature,
+            ),
+        )
+        return await step.execute(context)
+
+    result = asyncio.run(run())
+
+    # 保存结果
+    output_path = output_file or input_file
+    save_outline(result.paper, output_path)
+    console.print(f"\n[green]✓ 草稿已保存到: {output_path}[/green]")
+
+    # 提示下一步
+    console.print("\n[dim]请检查生成的草稿，确认后使用以下命令润色并导出:[/dim]")
+    console.print(f"[bold]aiwrite finalize {output_path}[/bold]")
+
+
+@app.command("finalize")
+def finalize(
+    input_file: Path = typer.Argument(
+        ...,
+        help="输入的论文 YAML 文件路径",
+        exists=True,
+    ),
+    output_dir: Optional[Path] = typer.Option(
+        None,
+        "--output", "-o",
+        help="输出目录（默认为 output/）",
+    ),
+    env_file: Optional[Path] = typer.Option(
+        None,
+        "--env", "-e",
+        help=".env 配置文件路径",
+    ),
+    skip_refine: bool = typer.Option(
+        False,
+        "--skip-refine",
+        help="跳过润色步骤",
+    ),
+    latex_only: bool = typer.Option(
+        False,
+        "--latex-only",
+        help="只生成 LaTeX，不转换为 Word",
+    ),
+) -> None:
+    """
+    润色章节并导出最终文档
+    
+    1. 使用写作模型润色所有章节
+    2. 组装完整 LaTeX 文档
+    3. 通过 pandoc 转换为 Word
+    """
+    console.print(Panel(
+        "[bold]AIWrite 最终导出[/bold]\n"
+        f"输入文件: {input_file}",
+        border_style="blue",
+    ))
+
+    config = load_config(env_file)
+    paper = load_outline(input_file)
+
+    console.print(f"[cyan]论文标题: {paper.title}[/cyan]")
+
+    output_dir = output_dir or Path("output")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 润色步骤
+    if not skip_refine and paper.status != PaperStatus.FINAL:
+        writing_provider = create_writing_provider(config)
+        step = SectionRefineStep(writing_provider)
+
+        async def run_refine():
+            from .models import PipelineContext, LLMOptions
+            context = PipelineContext(
+                paper=paper,
+                llm_options=LLMOptions(
+                    max_tokens=config.max_tokens,
+                    temperature=config.temperature,
+                ),
+            )
+            return await step.execute(context)
+
+        result = asyncio.run(run_refine())
+        paper = result.paper
+
+        # 保存润色后的结果
+        save_outline(paper, input_file)
+
+    # 生成 LaTeX
+    console.print("\n[bold blue]📄 生成 LaTeX 文档...[/bold blue]")
+    latex_renderer = LatexRenderer()
+    
+    # 生成文件名
+    safe_title = "".join(c for c in paper.title if c.isalnum() or c in " _-")[:50]
+    latex_path = output_dir / f"{safe_title}.tex"
+    latex_renderer.render_to_file(paper, latex_path, use_final=True)
+    console.print(f"[green]✓ LaTeX 文件: {latex_path}[/green]")
+
+    # 转换为 Word
+    if not latex_only:
+        console.print("\n[bold blue]📝 转换为 Word 文档...[/bold blue]")
+        word_exporter = WordExporter()
+        
+        if not word_exporter.check_pandoc():
+            console.print("[yellow]⚠ pandoc 未安装，尝试使用 python-docx 直接生成[/yellow]")
+            word_exporter = WordExporter(method="docx")
+
+        word_path = output_dir / f"{safe_title}.docx"
+        try:
+            word_exporter.export(paper, word_path, use_final=True)
+        except Exception as e:
+            console.print(f"[red]Word 导出失败: {e}[/red]")
+            console.print("[dim]您可以手动使用 pandoc 或其他工具转换 LaTeX 文件[/dim]")
+
+    console.print(Panel(
+        f"[bold green]✓ 论文导出完成[/bold green]\n\n"
+        f"输出目录: {output_dir}",
+        border_style="green",
+    ))
+
+
+@app.command("status")
+def status(
+    input_file: Path = typer.Argument(
+        ...,
+        help="论文 YAML 文件路径",
+        exists=True,
+    ),
+) -> None:
+    """
+    查看论文当前状态和进度
+    """
+    paper = load_outline(input_file)
+    
+    console.print(Panel(
+        f"[bold]{paper.title}[/bold]",
+        title="论文状态",
+        border_style="blue",
+    ))
+
+    # 状态信息
+    status_colors = {
+        PaperStatus.PENDING_OUTLINE: "yellow",
+        PaperStatus.OUTLINE_CONFIRMED: "cyan",
+        PaperStatus.DRAFT: "blue",
+        PaperStatus.FINAL: "green",
+    }
+    status_color = status_colors.get(paper.status, "white")
+    console.print(f"状态: [{status_color}]{paper.status.value}[/{status_color}]")
+
+    # 大纲概览
+    display_outline(paper)
+
+
+def display_outline(paper: Paper) -> None:
+    """显示论文大纲"""
+    table = Table(title="论文大纲", show_header=True)
+    table.add_column("章节", style="cyan")
+    table.add_column("目标字数", justify="right")
+    table.add_column("草稿", justify="center")
+    table.add_column("润色", justify="center")
+
+    def add_section_row(section, indent: int = 0):
+        prefix = "  " * indent
+        draft_status = "✓" if section.draft_latex else "-"
+        final_status = "✓" if section.final_latex else "-"
+        table.add_row(
+            f"{prefix}{section.title}",
+            str(section.target_words or "-"),
+            f"[green]{draft_status}[/green]" if section.draft_latex else f"[dim]{draft_status}[/dim]",
+            f"[green]{final_status}[/green]" if section.final_latex else f"[dim]{final_status}[/dim]",
+        )
+        for child in section.children:
+            add_section_row(child, indent + 1)
+
+    for section in paper.sections:
+        add_section_row(section)
+
+    console.print(table)
+
+
+@app.callback()
+def main():
+    """
+    AIWrite - 基于 LLM 的学术论文自动写作系统
+    
+    从「题目 + 章节大纲」生成完整的 Word 论文
+    """
+    pass
+
+
+if __name__ == "__main__":
+    app()

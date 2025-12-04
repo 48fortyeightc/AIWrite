@@ -1,0 +1,84 @@
+"""
+数据模型定义：Paper, Section 等核心结构
+"""
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+
+class PaperStatus(str, Enum):
+    """论文写作阶段状态"""
+    PENDING_OUTLINE = "pending_outline"       # 等待生成大纲
+    PENDING_CONFIRMATION = "pending_confirmation"  # 等待用户确认大纲
+    OUTLINE_CONFIRMED = "outline_confirmed"   # 大纲已确认
+    DRAFT = "draft"                           # 草稿阶段
+    FINAL = "final"                           # 最终版
+
+
+class Section(BaseModel):
+    """章节数据模型"""
+    id: str = Field(..., description="章节唯一标识，如 ch1, ch1.1")
+    title: str = Field(..., description="章节标题")
+    level: int = Field(..., description="层级：0=特殊区段，1=section，2=subsection，3=subsubsection")
+    target_words: int | None = Field(default=None, description="目标字数")
+    style: str | None = Field(default=None, description="写作风格")
+    notes: str | None = Field(default=None, description="写作要点说明")
+    children: list[Section] = Field(default_factory=list, description="子章节列表")
+    draft_latex: str | None = Field(default=None, description="草稿版 LaTeX 正文")
+    final_latex: str | None = Field(default=None, description="最终版 LaTeX 正文")
+
+    def get_all_sections(self) -> list[Section]:
+        """递归获取本节及所有子节"""
+        result = [self]
+        for child in self.children:
+            result.extend(child.get_all_sections())
+        return result
+
+    def find_section_by_id(self, section_id: str) -> Section | None:
+        """根据 ID 查找章节"""
+        if self.id == section_id:
+            return self
+        for child in self.children:
+            found = child.find_section_by_id(section_id)
+            if found:
+                return found
+        return None
+
+
+class Paper(BaseModel):
+    """论文数据模型"""
+    title: str = Field(..., description="论文题目")
+    authors: list[str] = Field(default_factory=list, description="作者列表")
+    keywords: list[str] = Field(default_factory=list, description="关键词列表")
+    language: Literal["zh", "en"] = Field(default="zh", description="语言")
+    style: str = Field(default="academic", description="写作风格")
+    target_words: int = Field(default=15000, description="目标总字数")
+    status: PaperStatus = Field(default=PaperStatus.PENDING_OUTLINE, description="当前状态")
+    sections: list[Section] = Field(default_factory=list, description="章节列表")
+
+    def get_all_sections(self) -> list[Section]:
+        """获取所有章节（包括子章节）"""
+        result = []
+        for section in self.sections:
+            result.extend(section.get_all_sections())
+        return result
+
+    def find_section_by_id(self, section_id: str) -> Section | None:
+        """根据 ID 查找章节"""
+        for section in self.sections:
+            found = section.find_section_by_id(section_id)
+            if found:
+                return found
+        return None
+
+    def get_main_chapters(self) -> list[Section]:
+        """获取正文章节（level=1）"""
+        return [s for s in self.sections if s.level == 1]
+
+    def get_special_sections(self) -> list[Section]:
+        """获取特殊区段（level=0，如摘要、参考文献）"""
+        return [s for s in self.sections if s.level == 0]
