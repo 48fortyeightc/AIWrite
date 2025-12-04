@@ -12,7 +12,13 @@ from rich.console import Console
 
 from ..llm import LLMProvider
 from ..models import Paper, Section, PaperStatus, PipelineStep, PipelineContext, LLMOptions
-from ..prompts import build_outline_prompt, build_section_draft_prompt, build_section_refine_prompt
+from ..prompts import (
+    build_outline_prompt, 
+    build_chapter_draft_prompt, 
+    build_section_refine_prompt,
+    build_abstract_prompt,
+    build_abstract_en_prompt,
+)
 
 
 console = Console()
@@ -113,11 +119,12 @@ class OutlineSuggestStep(PipelineStep):
             return original_sections
 
 
-class SectionDraftStep(PipelineStep):
+class ChapterDraftStep(PipelineStep):
     """
-    章节草稿写作步骤
+    章节草稿写作步骤（按章节级别生成）
     
-    使用写作模型为每个章节生成草稿内容
+    使用写作模型为每个主章节（level=1）生成完整内容
+    一次性生成包含所有小节的章节内容
     """
 
     def __init__(self, writing_provider: LLMProvider):
@@ -125,44 +132,54 @@ class SectionDraftStep(PipelineStep):
 
     @property
     def name(self) -> str:
-        return "section_draft"
+        return "chapter_draft"
 
     @property
     def description(self) -> str:
-        return "为论文章节生成草稿内容"
+        return "为论文章节生成草稿内容（按章节整体生成）"
 
     async def execute(self, context: PipelineContext) -> PipelineContext:
         """执行章节草稿生成"""
         paper = context.paper
         options = context.llm_options or LLMOptions()
 
-        console.print("[bold blue]✍️ 正在生成章节草稿...[/bold blue]")
+        console.print("[bold blue]✍️ 正在生成章节草稿（按章节整体生成）...[/bold blue]")
 
-        # 遍历所有需要写作的章节
-        all_sections = self._flatten_sections(paper.sections)
-        total = len(all_sections)
+        # 只处理主章节（level=1），不再展平到子章节
+        main_chapters = [s for s in paper.sections if s.level == 1]
+        total = len(main_chapters)
+        
+        previous_summaries: list[str] = []
 
-        for i, section in enumerate(all_sections, 1):
+        for i, chapter in enumerate(main_chapters, 1):
             # 跳过摘要、参考文献等特殊章节
-            if self._should_skip_section(section):
+            if self._should_skip_section(chapter):
                 continue
 
             # 跳过已有草稿的章节
-            if section.draft_latex:
-                console.print(f"[dim]跳过 [{i}/{total}] {section.title} (已有草稿)[/dim]")
+            if chapter.draft_latex:
+                console.print(f"[dim]跳过 [{i}/{total}] {chapter.title} (已有草稿)[/dim]")
+                # 提取摘要用于后续章节
+                previous_summaries.append(self._extract_summary(chapter.title, chapter.draft_latex))
                 continue
 
-            console.print(f"[cyan]📝 [{i}/{total}] 正在撰写: {section.title}[/cyan]")
+            # 计算本章目标字数
+            chapter_words = self._calculate_chapter_words(chapter)
+            console.print(f"[cyan]📝 [{i}/{total}] 正在撰写: {chapter.title} (目标 {chapter_words} 字)[/cyan]")
 
-            prompt = build_section_draft_prompt(paper, section)
+            prompt = build_chapter_draft_prompt(paper, chapter, previous_summaries if previous_summaries else None)
             response = await self.writing_provider.invoke(
                 prompt=prompt,
                 options=options,
             )
 
             if response.content:
-                section.draft_latex = self._clean_latex_response(response.content)
-                console.print(f"[green]  ✓ 完成 ({len(section.draft_latex)} 字符)[/green]")
+                chapter.draft_latex = self._clean_latex_response(response.content)
+                actual_chars = len(chapter.draft_latex)
+                console.print(f"[green]  ✓ 完成 ({actual_chars} 字符)[/green]")
+                
+                # 提取摘要用于后续章节上下文
+                previous_summaries.append(self._extract_summary(chapter.title, chapter.draft_latex))
             else:
                 console.print(f"[red]  ✗ 生成失败[/red]")
 
@@ -172,14 +189,23 @@ class SectionDraftStep(PipelineStep):
 
         return context
 
-    def _flatten_sections(self, sections: list[Section]) -> list[Section]:
-        """展平所有章节（包括子章节）"""
-        result = []
-        for s in sections:
-            result.append(s)
-            if s.children:
-                result.extend(self._flatten_sections(s.children))
-        return result
+    def _calculate_chapter_words(self, chapter: Section) -> int:
+        """计算章节目标字数"""
+        if chapter.target_words:
+            return chapter.target_words
+        # 从子章节累加
+        if chapter.children:
+            return sum(c.target_words or 500 for c in chapter.children)
+        return 2000
+
+    def _extract_summary(self, title: str, content: str, max_chars: int = 200) -> str:
+        """提取章节内容摘要（用于给后续章节提供上下文）"""
+        # 简单提取前200字作为摘要
+        clean_content = re.sub(r"\\[a-zA-Z]+\{[^}]*\}", "", content)
+        clean_content = re.sub(r"\\[a-zA-Z]+", "", clean_content)
+        clean_content = re.sub(r"\s+", " ", clean_content).strip()
+        summary = clean_content[:max_chars] + "..." if len(clean_content) > max_chars else clean_content
+        return f"{title}: {summary}"
 
     def _should_skip_section(self, section: Section) -> bool:
         """判断是否应该跳过该章节"""
@@ -193,6 +219,31 @@ class SectionDraftStep(PipelineStep):
         content = re.sub(r"```latex\s*", "", content)
         content = re.sub(r"```\s*$", "", content)
         return content.strip()
+
+
+# 保留旧的 SectionDraftStep 用于向后兼容，但实际委托给 ChapterDraftStep
+class SectionDraftStep(PipelineStep):
+    """
+    章节草稿写作步骤（向后兼容，实际使用 ChapterDraftStep）
+    
+    使用写作模型为每个章节生成草稿内容
+    """
+
+    def __init__(self, writing_provider: LLMProvider):
+        self.writing_provider = writing_provider
+        self._chapter_step = ChapterDraftStep(writing_provider)
+
+    @property
+    def name(self) -> str:
+        return "section_draft"
+
+    @property
+    def description(self) -> str:
+        return "为论文章节生成草稿内容"
+
+    async def execute(self, context: PipelineContext) -> PipelineContext:
+        """执行章节草稿生成（委托给 ChapterDraftStep）"""
+        return await self._chapter_step.execute(context)
 
 
 class SectionRefineStep(PipelineStep):
@@ -269,3 +320,127 @@ class SectionRefineStep(PipelineStep):
         content = re.sub(r"```latex\s*", "", content)
         content = re.sub(r"```\s*$", "", content)
         return content.strip()
+
+
+class AbstractGenerateStep(PipelineStep):
+    """
+    摘要生成步骤
+    
+    在全文内容完成后，使用思考模型生成摘要
+    """
+
+    def __init__(self, thinking_provider: LLMProvider, writing_provider: LLMProvider | None = None):
+        """
+        初始化摘要生成步骤
+        
+        Args:
+            thinking_provider: 思考模型（用于生成中文摘要）
+            writing_provider: 写作模型（用于生成英文摘要，可选）
+        """
+        self.thinking_provider = thinking_provider
+        self.writing_provider = writing_provider or thinking_provider
+
+    @property
+    def name(self) -> str:
+        return "abstract_generate"
+
+    @property
+    def description(self) -> str:
+        return "根据全文内容生成摘要"
+
+    async def execute(self, context: PipelineContext) -> PipelineContext:
+        """执行摘要生成"""
+        paper = context.paper
+        options = context.llm_options or LLMOptions()
+
+        console.print("[bold blue]📋 正在生成摘要...[/bold blue]")
+
+        # 收集全文内容
+        full_content = self._collect_full_content(paper)
+        if not full_content:
+            console.print("[yellow]⚠ 论文内容为空，无法生成摘要[/yellow]")
+            return context
+
+        # 查找摘要章节
+        abstract_section = self._find_abstract_section(paper)
+        abstract_en_section = self._find_abstract_en_section(paper)
+
+        # 生成中文摘要
+        if abstract_section and not abstract_section.final_latex:
+            console.print("[cyan]📝 正在生成中文摘要...[/cyan]")
+            
+            prompt = build_abstract_prompt(paper, full_content)
+            response = await self.thinking_provider.invoke(
+                prompt=prompt,
+                options=options,
+            )
+
+            if response.content:
+                abstract_section.draft_latex = response.content
+                abstract_section.final_latex = response.content
+                console.print(f"[green]  ✓ 中文摘要完成 ({len(response.content)} 字符)[/green]")
+                
+                # 如果有思考过程，显示
+                if response.reasoning_content:
+                    console.print("[dim]  (思考模型分析了全文结构)[/dim]")
+
+        # 生成英文摘要
+        if abstract_en_section and abstract_section and abstract_section.final_latex:
+            if not abstract_en_section.final_latex:
+                console.print("[cyan]📝 正在生成英文摘要...[/cyan]")
+                
+                prompt = build_abstract_en_prompt(paper, abstract_section.final_latex)
+                response = await self.writing_provider.invoke(
+                    prompt=prompt,
+                    options=options,
+                )
+
+                if response.content:
+                    abstract_en_section.draft_latex = response.content
+                    abstract_en_section.final_latex = response.content
+                    console.print(f"[green]  ✓ 英文摘要完成 ({len(response.content)} 字符)[/green]")
+
+        context.paper = paper
+        console.print("[bold green]✓ 摘要生成完成[/bold green]")
+
+        return context
+
+    def _collect_full_content(self, paper: Paper) -> str:
+        """收集论文全文内容（用于生成摘要）"""
+        content_parts = []
+        for section in paper.sections:
+            # 跳过摘要和参考文献
+            if self._is_abstract_section(section) or self._is_reference_section(section):
+                continue
+            
+            content = section.final_latex or section.draft_latex
+            if content:
+                content_parts.append(f"## {section.title}\n{content}")
+        
+        return "\n\n".join(content_parts)
+
+    def _find_abstract_section(self, paper: Paper) -> Section | None:
+        """查找中文摘要章节"""
+        for section in paper.sections:
+            title_lower = section.title.lower()
+            if "摘要" in title_lower and "abstract" not in title_lower:
+                return section
+        return None
+
+    def _find_abstract_en_section(self, paper: Paper) -> Section | None:
+        """查找英文摘要章节"""
+        for section in paper.sections:
+            title_lower = section.title.lower()
+            if "abstract" in title_lower:
+                return section
+        return None
+
+    def _is_abstract_section(self, section: Section) -> bool:
+        """判断是否是摘要章节"""
+        title_lower = section.title.lower()
+        return "摘要" in title_lower or "abstract" in title_lower
+
+    def _is_reference_section(self, section: Section) -> bool:
+        """判断是否是参考文献章节"""
+        title_lower = section.title.lower()
+        return "参考文献" in title_lower or "references" in title_lower

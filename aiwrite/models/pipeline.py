@@ -17,7 +17,7 @@ class LLMOptions(BaseModel):
     max_tokens: int = Field(default=4096, description="最大 Token 数")
     temperature: float = Field(default=0.3, description="温度参数")
     top_p: float = Field(default=0.9, description="Top-P 采样")
-    timeout: float = Field(default=120.0, description="超时时间（秒）")
+    timeout: float = Field(default=300.0, description="超时时间（秒），思考模型需要更长时间")
 
 
 class PipelineContext(BaseModel):

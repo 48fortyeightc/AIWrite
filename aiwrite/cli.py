@@ -27,7 +27,7 @@ from .config import (
     create_writing_provider,
 )
 from .models import Paper, PaperStatus, LLMOptions
-from .pipeline import OutlineSuggestStep, SectionDraftStep, SectionRefineStep, PipelineExecutor
+from .pipeline import OutlineSuggestStep, SectionDraftStep, SectionRefineStep, AbstractGenerateStep, PipelineExecutor
 from .render import LatexRenderer, WordExporter
 
 
@@ -209,6 +209,11 @@ def finalize(
         "--skip-refine",
         help="跳过润色步骤",
     ),
+    skip_abstract: bool = typer.Option(
+        False,
+        "--skip-abstract",
+        help="跳过摘要生成步骤",
+    ),
     latex_only: bool = typer.Option(
         False,
         "--latex-only",
@@ -219,8 +224,9 @@ def finalize(
     润色章节并导出最终文档
     
     1. 使用写作模型润色所有章节
-    2. 组装完整 LaTeX 文档
-    3. 通过 pandoc 转换为 Word
+    2. 使用思考模型生成摘要
+    3. 组装完整 LaTeX 文档
+    4. 导出 Word 文档
     """
     console.print(Panel(
         "[bold]AIWrite 最终导出[/bold]\n"
@@ -255,8 +261,32 @@ def finalize(
         result = asyncio.run(run_refine())
         paper = result.paper
 
-        # 保存润色后的结果
-        save_outline(paper, input_file)
+    # 摘要生成步骤（使用思考模型）
+    if not skip_abstract:
+        # 检查是否有摘要章节
+        has_abstract = any("摘要" in s.title.lower() or "abstract" in s.title.lower() 
+                          for s in paper.sections)
+        if has_abstract:
+            thinking_provider = create_thinking_provider(config)
+            writing_provider = create_writing_provider(config)
+            abstract_step = AbstractGenerateStep(thinking_provider, writing_provider)
+
+            async def run_abstract():
+                from .models import PipelineContext, LLMOptions
+                context = PipelineContext(
+                    paper=paper,
+                    llm_options=LLMOptions(
+                        max_tokens=config.max_tokens,
+                        temperature=config.temperature,
+                    ),
+                )
+                return await abstract_step.execute(context)
+
+            result = asyncio.run(run_abstract())
+            paper = result.paper
+
+    # 保存处理后的结果
+    save_outline(paper, input_file)
 
     # 生成 LaTeX
     console.print("\n[bold blue]📄 生成 LaTeX 文档...[/bold blue]")
@@ -270,12 +300,9 @@ def finalize(
 
     # 转换为 Word
     if not latex_only:
-        console.print("\n[bold blue]📝 转换为 Word 文档...[/bold blue]")
-        word_exporter = WordExporter()
-        
-        if not word_exporter.check_pandoc():
-            console.print("[yellow]⚠ pandoc 未安装，尝试使用 python-docx 直接生成[/yellow]")
-            word_exporter = WordExporter(method="docx")
+        console.print("\n[bold blue]📝 生成 Word 文档...[/bold blue]")
+        # 默认使用 docx 方法，因为用户可能没有安装 pandoc
+        word_exporter = WordExporter(method="docx")
 
         word_path = output_dir / f"{safe_title}.docx"
         try:
