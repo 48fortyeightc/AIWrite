@@ -167,7 +167,7 @@ class WordExporter:
 
         doc = Document()
         
-        # 设置文档默认字体
+        # 设置文档默认字体和段落格式
         self._set_document_defaults(doc)
 
         # 论文标题
@@ -178,6 +178,7 @@ class WordExporter:
         title_run.font.name = '黑体'
         title_run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
         title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        title_para.paragraph_format.first_line_indent = Cm(0)  # 标题不缩进
         title_para.space_after = Pt(24)
 
         # 作者
@@ -186,6 +187,7 @@ class WordExporter:
             author_run = author_para.add_run(", ".join(paper.authors))
             author_run.font.size = Pt(12)
             author_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            author_para.paragraph_format.first_line_indent = Cm(0)
 
         # 关键词
         if paper.keywords:
@@ -194,6 +196,7 @@ class WordExporter:
             kw_bold.bold = True
             kw_para.add_run("；".join(paper.keywords))
             kw_para.space_after = Pt(12)
+            kw_para.paragraph_format.first_line_indent = Cm(0)
 
         doc.add_page_break()
 
@@ -205,6 +208,7 @@ class WordExporter:
         toc_run.font.name = '黑体'
         toc_run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
         toc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        toc_title.paragraph_format.first_line_indent = Cm(0)
         toc_title.space_after = Pt(18)
 
         # 添加目录域（需要用户手动更新）
@@ -214,12 +218,13 @@ class WordExporter:
         hint_para = doc.add_paragraph()
         hint_run = hint_para.add_run('（请右键点击目录，选择"更新域"以生成目录）')
         hint_run.italic = True
-
-        doc.add_page_break()
+        hint_para.paragraph_format.first_line_indent = Cm(0)
 
         # 章节内容
-        for section in paper.sections:
-            self._add_section_to_doc(doc, section, use_final, level=1)
+        for i, section in enumerate(paper.sections):
+            # 每个主要章节前添加分页符
+            doc.add_page_break()
+            self._add_section_to_doc(doc, section, use_final, level=1, is_first_section=(i==0))
 
         # 保存文档
         doc.save(str(output_path))
@@ -229,7 +234,7 @@ class WordExporter:
 
     def _set_document_defaults(self, doc: "Document") -> None:
         """设置文档默认样式"""
-        from docx.shared import Pt
+        from docx.shared import Pt, Cm
         from docx.oxml.ns import qn
 
         # 设置正文样式
@@ -238,21 +243,23 @@ class WordExporter:
         style.font.size = Pt(12)
         style._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
         style.paragraph_format.line_spacing = 1.5
+        style.paragraph_format.first_line_indent = Cm(0.74)  # 首行缩进2字符
 
         # 设置标题样式
         for i in range(1, 4):
             heading_style = doc.styles[f'Heading {i}']
             if i == 1:
                 heading_style.font.size = Pt(16)
-                heading_style.font.name = '黑体'
             elif i == 2:
                 heading_style.font.size = Pt(14)
-                heading_style.font.name = '黑体'
             else:
                 heading_style.font.size = Pt(12)
-                heading_style.font.name = '黑体'
+            heading_style.font.name = '黑体'
             heading_style.font.bold = True
             heading_style._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
+            heading_style.paragraph_format.first_line_indent = Cm(0)  # 标题不缩进
+            heading_style.paragraph_format.space_before = Pt(12)
+            heading_style.paragraph_format.space_after = Pt(6)
 
     def _add_toc_field(self, doc: "Document") -> None:
         """添加目录域"""
@@ -287,23 +294,23 @@ class WordExporter:
         section: "Section",
         use_final: bool,
         level: int,
+        is_first_section: bool = False,
     ) -> None:
         """添加章节到 Word 文档"""
-        from docx.shared import Pt
+        from docx.shared import Pt, Cm
         from docx.oxml.ns import qn
 
-        # 使用正确的 Word 内置标题样式（支持目录生成）
-        heading_level = min(level, 9)  # Word 最多支持 9 级标题
-        heading = doc.add_heading(level=heading_level)
-        heading_run = heading.runs[0] if heading.runs else heading.add_run(section.title)
-        if not heading.runs:
-            heading_run = heading.add_run(section.title)
-        else:
-            heading_run.text = section.title
+        # 添加标题（使用 Word 内置标题样式，支持目录生成）
+        heading_level = min(level, 9)
+        heading = doc.add_heading(section.title, level=heading_level)
         
-        # 设置中文字体
-        heading_run.font.name = '黑体'
-        heading_run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
+        # 设置标题字体
+        for run in heading.runs:
+            run.font.name = '黑体'
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
+        
+        # 标题不缩进
+        heading.paragraph_format.first_line_indent = Cm(0)
 
         # 获取内容
         content = ""
@@ -314,7 +321,7 @@ class WordExporter:
 
         if content:
             # 解析 LaTeX 内容并添加到文档
-            self._add_latex_content_to_doc(doc, content, section.title)
+            self._add_latex_content_to_doc(doc, content)
 
         # 递归处理子章节
         for child in section.children:
@@ -324,17 +331,21 @@ class WordExporter:
         self,
         doc: "Document",
         latex_content: str,
-        section_title: str,
     ) -> None:
         """将 LaTeX 内容转换并添加到 Word 文档"""
-        from docx.shared import Pt
+        from docx.shared import Pt, Cm
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
 
-        # 移除 \section{} 和 \subsection{} 命令（已由标题处理）
-        content = re.sub(r"\\(sub)*section\{[^}]*\}", "", latex_content)
+        # 移除 \section{} 和 \subsection{} 命令（标题已单独处理）
+        content = re.sub(r"\\(chapter|section|subsection|subsubsection)\{[^}]*\}", "\n\n", latex_content)
         
-        # 处理 \textbf{...}
-        content = re.sub(r"\\textbf\{([^}]*)\}", r"【\1】", content)
+        # 处理图表占位符
+        content = re.sub(r"\{\{FIGURE:([^:]*):([^}]*)\}\}", r"\n\n[图: \1]\n说明: \2\n\n", content)
+        content = re.sub(r"\{\{TABLE:([^:]*):([^}]*)\}\}", r"\n\n[表: \1]\n说明: \2\n\n", content)
+        
+        # 处理 \textbf{...} - 保留内容，加粗标记
+        content = re.sub(r"\\textbf\{([^}]*)\}", r"\1", content)
         
         # 处理 \textit{...} 和 \emph{...}
         content = re.sub(r"\\textit\{([^}]*)\}", r"\1", content)
@@ -343,26 +354,46 @@ class WordExporter:
         # 处理 \cite{...}
         content = re.sub(r"\\cite\{[^}]*\}", "[引用]", content)
         
-        # 移除其他 LaTeX 命令
-        content = re.sub(r"\\[a-zA-Z]+\{[^}]*\}", "", content)
-        content = re.sub(r"\\[a-zA-Z]+", "", content)
+        # 移除其他 LaTeX 命令但保留内容
+        content = re.sub(r"\\[a-zA-Z]+\*?\{([^}]*)\}", r"\1", content)
+        content = re.sub(r"\\[a-zA-Z]+\*?", "", content)
+        content = re.sub(r"[{}]", "", content)
+        
+        # 清理多余空行
+        content = re.sub(r"\n{3,}", "\n\n", content)
         
         # 按段落分割并添加
-        paragraphs = content.split("\n\n")
+        paragraphs = content.strip().split("\n\n")
         for para_text in paragraphs:
             para_text = para_text.strip()
-            # 跳过空段落和只有空白的段落
-            if not para_text or para_text.isspace():
+            
+            # 跳过空段落
+            if not para_text or len(para_text) < 3:
                 continue
-            # 跳过只包含标点的段落
-            if len(para_text) < 5:
-                continue
-                
-            para = doc.add_paragraph()
-            run = para.add_run(para_text)
-            run.font.name = '宋体'
-            run.font.size = Pt(12)
-            run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+            
+            # 合并段落内的换行
+            para_text = re.sub(r"\s*\n\s*", " ", para_text)
+            para_text = re.sub(r"\s+", " ", para_text).strip()
+            
+            # 检查是否是图表占位符
+            if para_text.startswith("[图:") or para_text.startswith("[表:") or para_text.startswith("说明:"):
+                para = doc.add_paragraph()
+                para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                run = para.add_run(para_text)
+                run.font.name = '宋体'
+                run.font.size = Pt(10)
+                run.italic = True
+                run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                para.paragraph_format.first_line_indent = Cm(0)  # 图表占位符不缩进
+            else:
+                # 普通段落
+                para = doc.add_paragraph()
+                run = para.add_run(para_text)
+                run.font.name = '宋体'
+                run.font.size = Pt(12)
+                run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                para.paragraph_format.first_line_indent = Cm(0.74)  # 首行缩进2字符
+                para.paragraph_format.line_spacing = 1.5
 
     def _strip_latex_commands(self, text: str) -> str:
         """移除 LaTeX 命令，保留文本内容"""
