@@ -42,16 +42,19 @@ class OutlineInitializer:
     def __init__(
         self,
         thinking_provider: "LLMProvider",
+        vision_provider: "LLMProvider | None" = None,
         images_path: str | Path | None = None,
     ):
         """
         初始化
         
         Args:
-            thinking_provider: 思考模型（用于图片识别和大纲解析）
+            thinking_provider: 思考模型（用于大纲解析和Mermaid生成）
+            vision_provider: 视觉模型（用于图片识别），如果不提供则使用 thinking_provider
             images_path: 图片目录路径
         """
         self.thinking_provider = thinking_provider
+        self.vision_provider = vision_provider or thinking_provider
         self.images_path = Path(images_path) if images_path else None
     
     async def scan_images(self) -> list[dict]:
