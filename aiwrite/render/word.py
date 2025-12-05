@@ -55,6 +55,44 @@ class WordExporter:
         self.images_base_path = Path(images_base_path) if images_base_path else None
         self.latex_renderer = LatexRenderer()
 
+    def _resolve_image_path(self, figure_path: str) -> Path:
+        """
+        智能解析图片路径，避免路径重复拼接
+        
+        例如：
+        - images_base_path = D:/project/img
+        - figure_path = img/1.png
+        - 结果应为 D:/project/img/1.png 而不是 D:/project/img/img/1.png
+        """
+        figure_path_obj = Path(figure_path)
+        
+        if not self.images_base_path:
+            return figure_path_obj
+        
+        # 直接拼接的路径
+        direct_path = self.images_base_path / figure_path
+        
+        # 如果直接拼接的路径存在，使用它
+        if direct_path.exists():
+            return direct_path
+        
+        # 检查是否有路径重复（如 base=.../img, path=img/1.png）
+        # 尝试只使用文件名
+        filename_only = self.images_base_path / figure_path_obj.name
+        if filename_only.exists():
+            return filename_only
+        
+        # 尝试去掉 figure_path 的第一层目录
+        parts = figure_path_obj.parts
+        if len(parts) > 1:
+            without_first = Path(*parts[1:])
+            alt_path = self.images_base_path / without_first
+            if alt_path.exists():
+                return alt_path
+        
+        # 都不存在，返回直接拼接的路径（让后续代码处理不存在的情况）
+        return direct_path
+
     def _find_pandoc(self) -> str | None:
         """查找 pandoc 可执行文件"""
         pandoc_path = shutil.which("pandoc")
@@ -378,11 +416,8 @@ class WordExporter:
         from docx.oxml.ns import qn
 
         for figure in figures:
-            # 确定图片路径
-            if self.images_base_path:
-                image_path = self.images_base_path / figure.path
-            else:
-                image_path = Path(figure.path)
+            # 确定图片路径（智能处理路径重复）
+            image_path = self._resolve_image_path(figure.path)
             
             # 添加图片
             if image_path.exists():
@@ -458,11 +493,8 @@ class WordExporter:
             try:
                 from ..utils.excel import read_excel_file
                 
-                # 确定表格路径
-                if self.images_base_path:
-                    table_path = self.images_base_path / table.path
-                else:
-                    table_path = Path(table.path)
+                # 确定表格路径（智能处理路径重复）
+                table_path = self._resolve_image_path(table.path)
                 
                 if table_path.exists():
                     rows = read_excel_file(table_path)
@@ -818,11 +850,8 @@ class WordExporter:
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.ns import qn
 
-        # 确定图片路径
-        if self.images_base_path:
-            image_path = self.images_base_path / figure.path
-        else:
-            image_path = Path(figure.path)
+        # 确定图片路径（智能处理路径重复）
+        image_path = self._resolve_image_path(figure.path)
         
         if image_path.exists():
             try:
