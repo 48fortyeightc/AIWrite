@@ -481,3 +481,210 @@ def build_image_analysis_prompt(
         section_title=section_title,
     )
 
+
+# ============================================================================
+# 大纲初始化 Prompt（新增）
+# ============================================================================
+
+OUTLINE_INIT_PROMPT = """你是一个学术论文大纲规划专家。你的任务是：
+1. 解析用户提供的纯文本大纲
+2. 识别每个章节需要的图表
+3. 根据已有的本地图片，自动匹配到对应章节
+4. 为缺少的图表生成 Mermaid 代码
+
+## 论文信息
+
+**论文标题**：{paper_title}
+**目标字数**：{target_words}
+
+## 用户提供的大纲
+
+```
+{outline_text}
+```
+
+## 已有的本地资源
+
+### 图片文件及其内容描述
+{image_descriptions}
+
+### 表格文件及其内容
+{table_descriptions}
+
+## 任务
+
+1. 解析大纲，生成完整的 YAML 结构
+2. 将已有图片根据其内容描述，匹配到最合适的章节
+3. 将已有表格根据其内容，匹配到最合适的章节
+4. 识别大纲中标记的📌位置，确定需要哪些图表
+5. 对于缺少的图表，生成 Mermaid 代码
+
+## 输出格式
+
+请严格按照以下 JSON 格式输出：
+
+```json
+{{
+  "paper": {{
+    "title": "论文标题",
+    "keywords": ["关键词1", "关键词2", "关键词3", "关键词4", "关键词5"],
+    "keywords_en": ["Keyword1", "Keyword2", "Keyword3", "Keyword4", "Keyword5"],
+    "target_words": {target_words}
+  }},
+  "sections": [
+    {{
+      "id": "ch1",
+      "title": "第1章 绪论",
+      "level": 1,
+      "target_words": 2000,
+      "notes": "章节写作提示",
+      "children": [
+        {{
+          "id": "ch1-1",
+          "title": "1.1 研究背景与意义",
+          "level": 2,
+          "target_words": 600,
+          "notes": "小节写作提示"
+        }}
+      ]
+    }},
+    {{
+      "id": "ch2",
+      "title": "第2章 系统需求分析",
+      "level": 1,
+      "target_words": 2500,
+      "children": [
+        {{
+          "id": "ch2-1",
+          "title": "2.1 系统业务流程",
+          "level": 2,
+          "target_words": 500,
+          "figures": [
+            {{
+              "id": "fig2-1",
+              "path": "已有图片的相对路径",
+              "caption": "图片标题",
+              "source": "local"
+            }}
+          ]
+        }},
+        {{
+          "id": "ch3-3",
+          "title": "3.3 数据库设计",
+          "level": 2,
+          "tables": [
+            {{
+              "id": "tab3-1",
+              "path": "已有表格的相对路径",
+              "caption": "表格标题",
+              "source": "local"
+            }}
+          ]
+        }}
+      ]
+    }}
+  ],
+  "missing_diagrams": [
+    {{
+      "id": "fig2-2",
+      "caption": "缺少的图表标题",
+      "section_id": "所属章节ID",
+      "type": "flowchart|sequence|er|use_case|pie|class",
+      "mermaid_code": "Mermaid 代码"
+    }}
+  ]
+}}
+```
+
+## 注意事项
+
+1. 根据图片内容描述判断最合适的章节位置
+2. 只有当确实需要且本地没有对应图片时才生成 Mermaid 代码
+3. 生成的 Mermaid 代码要与论文主题相关
+4. 表格应放在数据库设计或需求说明相关章节
+5. 为每个章节和小节分配合理的目标字数
+6. notes 字段应包含该小节的写作要点提示
+"""
+
+
+MERMAID_GENERATION_PROMPT = """你是一个 Mermaid 图表专家。请根据以下信息生成 Mermaid 代码。
+
+## 论文信息
+**论文标题**：{paper_title}
+
+## 需要生成的图表
+**图表类型**：{diagram_type}
+**图表标题**：{diagram_caption}
+**所属章节**：{section_title}
+**图表描述**：{diagram_description}
+
+## 要求
+
+1. 生成的 Mermaid 代码要与论文主题相关
+2. 使用中文标签
+3. 结构清晰，布局合理
+4. 只输出 Mermaid 代码，不要其他说明
+
+## 支持的图表类型
+
+- flowchart/graph: 流程图、用例图、功能结构图
+- sequenceDiagram: 时序图
+- erDiagram: ER 图
+- classDiagram: 类图
+- pie: 饼图
+- xychart-beta: 柱状图/折线图
+- stateDiagram-v2: 状态图
+
+## 输出
+
+请直接输出 Mermaid 代码：
+"""
+
+
+def build_outline_init_prompt(
+    paper_title: str,
+    target_words: int,
+    outline_text: str,
+    image_descriptions: str,
+    table_descriptions: str,
+) -> str:
+    """
+    构建大纲初始化 Prompt
+    
+    Args:
+        paper_title: 论文标题
+        target_words: 目标字数
+        outline_text: 用户输入的大纲文本
+        image_descriptions: 图片描述列表
+        table_descriptions: 表格描述列表
+        
+    Returns:
+        完整的 Prompt 字符串
+    """
+    return OUTLINE_INIT_PROMPT.format(
+        paper_title=paper_title,
+        target_words=target_words,
+        outline_text=outline_text,
+        image_descriptions=image_descriptions,
+        table_descriptions=table_descriptions,
+    )
+
+
+def build_mermaid_generation_prompt(
+    paper_title: str,
+    diagram_type: str,
+    diagram_caption: str,
+    section_title: str,
+    diagram_description: str,
+) -> str:
+    """
+    构建 Mermaid 代码生成 Prompt
+    """
+    return MERMAID_GENERATION_PROMPT.format(
+        paper_title=paper_title,
+        diagram_type=diagram_type,
+        diagram_caption=diagram_caption,
+        section_title=section_title,
+        diagram_description=diagram_description,
+    )
+

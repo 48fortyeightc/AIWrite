@@ -29,6 +29,7 @@ from .config import (
 )
 from .models import Paper, PaperStatus, LLMOptions
 from .pipeline import OutlineSuggestStep, SectionDraftStep, SectionRefineStep, AbstractGenerateStep, ImageAnalyzeStep, PipelineExecutor
+from .pipeline.init_step import OutlineInitializer, run_init_interactive
 from .render import LatexRenderer, WordExporter
 
 
@@ -39,6 +40,84 @@ app = typer.Typer(
 )
 
 console = Console()
+
+
+@app.command("init")
+def init(
+    title: str = typer.Option(
+        ...,
+        "--title", "-t",
+        help="论文标题",
+    ),
+    output_file: Path = typer.Option(
+        ...,
+        "--output", "-o",
+        help="输出的 YAML 配置文件路径",
+    ),
+    images_dir: Optional[Path] = typer.Option(
+        None,
+        "--images", "-i",
+        help="图片目录路径（用于 AI 自动识别和匹配）",
+    ),
+    target_words: int = typer.Option(
+        10000,
+        "--words", "-w",
+        help="论文目标字数",
+    ),
+    env_file: Optional[Path] = typer.Option(
+        None,
+        "--env", "-e",
+        help=".env 配置文件路径",
+    ),
+) -> None:
+    """
+    从纯文本大纲初始化论文配置
+
+    交互式输入大纲文本，使用 AI 自动：
+    1. 扫描并识别图片目录中的所有图片
+    2. 将图片自动匹配到合适的章节
+    3. 为缺少的图表生成 Mermaid 代码并渲染
+    4. 生成完整的 YAML 配置文件
+
+    示例:
+        aiwrite init -t "基于Spring Boot的人事管理系统设计与实现" -o hrm.yaml -i examples/img2 -w 10000
+    """
+    console.print(Panel(
+        "[bold]AIWrite 大纲初始化[/bold]\n"
+        f"论文标题: {title}\n"
+        f"目标字数: {target_words}\n"
+        f"图片目录: {images_dir or '（未指定）'}",
+        border_style="blue",
+    ))
+
+    # 加载配置
+    config = load_config(env_file)
+
+    # 创建思考模型 Provider（同时支持文本和图像）
+    thinking_provider = create_thinking_provider(config)
+    console.print(f"[dim]使用模型: {thinking_provider.model}[/dim]")
+
+    # 运行交互式初始化
+    async def run():
+        return await run_init_interactive(
+            paper_title=title,
+            thinking_provider=thinking_provider,
+            images_path=images_dir,
+            output_path=output_file,
+            target_words=target_words,
+        )
+
+    try:
+        paper = asyncio.run(run())
+        console.print(f"\n[green]✓ 初始化完成，配置已保存到: {output_file}[/green]")
+        console.print("\n[dim]下一步：[/dim]")
+        console.print(f"[bold]aiwrite generate-draft {output_file}[/bold]")
+    except KeyboardInterrupt:
+        console.print("\n[yellow]已取消[/yellow]")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        console.print(f"\n[red]错误: {e}[/red]")
+        raise typer.Exit(code=1)
 
 
 @app.command("suggest-outline")

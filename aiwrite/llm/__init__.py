@@ -2,7 +2,13 @@
 LLM 模块
 """
 
-from .base import LLMProvider, LLMPurpose, LLMResponse
+from .base import (
+    LLMProvider,
+    LLMPurpose,
+    LLMResponse,
+    encode_image_to_base64,
+    get_image_media_type,
+)
 from .providers import (
     DeepSeekProvider,
     DoubaoProvider,
@@ -20,6 +26,8 @@ __all__ = [
     "LLMProvider",
     "LLMPurpose",
     "LLMResponse",
+    "encode_image_to_base64",
+    "get_image_media_type",
     "OpenAICompatibleProvider",
     "DoubaoProvider",
     "DeepSeekProvider",
