@@ -218,7 +218,7 @@ class WordExporter:
         for i, section in enumerate(paper.sections):
             # 每个主要章节前添加分页符
             doc.add_page_break()
-            self._add_section_to_doc(doc, section, use_final, level=1, is_first_section=(i==0), keywords=paper.keywords)
+            self._add_section_to_doc(doc, section, use_final, level=1, is_first_section=(i==0), keywords=paper.keywords, keywords_en=paper.keywords_en)
 
         # 保存文档
         doc.save(str(output_path))
@@ -290,11 +290,13 @@ class WordExporter:
         level: int,
         is_first_section: bool = False,
         keywords: list[str] | None = None,
+        keywords_en: list[str] | None = None,
     ) -> None:
         """添加章节到 Word 文档
         
         Args:
-            keywords: 关键词列表，仅在摘要章节后输出
+            keywords: 中文关键词列表，仅在摘要章节后输出
+            keywords_en: 英文关键词列表，仅在英文摘要章节后输出
         """
         from docx.shared import Pt, Cm, Inches
         from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -349,8 +351,9 @@ class WordExporter:
             kw_para = doc.add_paragraph()
             kw_bold = kw_para.add_run("Keywords: ")
             kw_bold.bold = True
-            # 将中文关键词翻译为英文的逻辑这里简化处理，直接用中文
-            kw_para.add_run("; ".join(keywords))
+            # 使用英文关键词（如果有），否则使用中文关键词
+            kw_en = keywords_en if keywords_en else keywords
+            kw_para.add_run("; ".join(kw_en))
             kw_para.paragraph_format.first_line_indent = Cm(0)
             kw_para.space_after = Pt(12)
         
@@ -362,7 +365,7 @@ class WordExporter:
         # 避免重复输出
         if not has_subsections_in_content:
             for child in section.children:
-                self._add_section_to_doc(doc, child, use_final, level + 1, keywords=keywords)
+                self._add_section_to_doc(doc, child, use_final, level + 1, keywords=keywords, keywords_en=keywords_en)
 
     def _add_figures_to_doc(
         self,

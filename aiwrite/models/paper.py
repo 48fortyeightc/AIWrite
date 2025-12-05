@@ -74,6 +74,7 @@ class Paper(BaseModel):
     title: str = Field(..., description="论文题目")
     authors: list[str] = Field(default_factory=list, description="作者列表")
     keywords: list[str] = Field(default_factory=list, description="关键词列表")
+    keywords_en: list[str] = Field(default_factory=list, description="英文关键词列表")
     language: Literal["zh", "en"] = Field(default="zh", description="语言")
     style: str = Field(default="academic", description="写作风格")
     target_words: int = Field(default=15000, description="目标总字数")
