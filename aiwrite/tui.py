@@ -328,10 +328,11 @@ def continue_paper_flow():
         try:
             paper = load_outline(f)
             status_icon = {
-                PaperStatus.OUTLINE: "📋",
-                PaperStatus.DRAFTED: "✏️",
-                PaperStatus.REFINED: "✨",
-                PaperStatus.COMPLETED: "✅",
+                PaperStatus.PENDING_OUTLINE: "⏳",
+                PaperStatus.PENDING_CONFIRMATION: "📋",
+                PaperStatus.OUTLINE_CONFIRMED: "✅",
+                PaperStatus.DRAFT: "✏️",
+                PaperStatus.FINAL: "✨",
             }.get(paper.status, "📄")
             choices.append(questionary.Choice(
                 f"{status_icon} {paper.title[:40]} ({f.name})",
@@ -373,10 +374,10 @@ def continue_paper_flow():
     # 根据状态提供选项
     choices = []
     
-    if paper.status == PaperStatus.OUTLINE:
+    if paper.status == PaperStatus.OUTLINE_CONFIRMED:
         choices.append(questionary.Choice("✏️  生成草稿", value="draft"))
     
-    if paper.status in [PaperStatus.OUTLINE, PaperStatus.DRAFTED]:
+    if paper.status in [PaperStatus.OUTLINE_CONFIRMED, PaperStatus.DRAFT]:
         choices.append(questionary.Choice("✨ 润色内容", value="refine"))
     
     choices.append(questionary.Choice("⚡ 一键完成剩余流程", value="all"))
@@ -593,9 +594,9 @@ def full_pipeline_flow(file_path: Path, images_dir: Optional[str] = None):
     paper = load_outline(file_path)
     
     steps = []
-    if paper.status == PaperStatus.OUTLINE:
+    if paper.status == PaperStatus.OUTLINE_CONFIRMED:
         steps.append("生成草稿")
-    if paper.status in [PaperStatus.OUTLINE, PaperStatus.DRAFTED]:
+    if paper.status in [PaperStatus.OUTLINE_CONFIRMED, PaperStatus.DRAFT]:
         steps.append("润色内容")
     steps.append("生成摘要")
     steps.append("导出文档")
@@ -633,7 +634,7 @@ def full_pipeline_flow(file_path: Path, images_dir: Optional[str] = None):
     
     try:
         # 1. 生成草稿
-        if paper.status == PaperStatus.OUTLINE:
+        if paper.status == PaperStatus.OUTLINE_CONFIRMED:
             console.print("\n[bold blue]━━━ [1/4] 生成草稿 ━━━[/bold blue]\n")
             writing_provider = create_writing_provider(config)
             step = SectionDraftStep(writing_provider)
@@ -647,7 +648,7 @@ def full_pipeline_flow(file_path: Path, images_dir: Optional[str] = None):
             save_outline(paper, file_path)
         
         # 2. 润色
-        if paper.status in [PaperStatus.OUTLINE, PaperStatus.DRAFTED]:
+        if paper.status in [PaperStatus.OUTLINE_CONFIRMED, PaperStatus.DRAFT]:
             console.print("\n[bold blue]━━━ [2/4] 润色内容 ━━━[/bold blue]\n")
             writing_provider = create_writing_provider(config)
             step = SectionRefineStep(writing_provider)
