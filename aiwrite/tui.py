@@ -79,6 +79,7 @@ def show_main_menu() -> str:
     choices = [
         questionary.Choice("📝 新建论文（从头开始）", value="new"),
         questionary.Choice("📂 继续写作（选择已有项目）", value="continue"),
+        questionary.Choice("🗂️  项目管理（重置/删除）", value="manage"),
         questionary.Choice("🖼️  生成图表（Mermaid）", value="diagram"),
         questionary.Choice("⚙️  设置", value="settings"),
         questionary.Choice("❓ 帮助", value="help"),
@@ -708,6 +709,142 @@ def full_pipeline_flow(file_path: Path, images_dir: Optional[str] = None):
         subprocess.run(["explorer", str(output_path)], shell=True)
 
 
+def manage_projects_flow():
+    """项目管理流程"""
+    console.print("\n[bold cyan]━━━ 🗂️ 项目管理 ━━━[/bold cyan]\n")
+    
+    # 扫描已有的 YAML 文件
+    yaml_files = list(Path(".").glob("*.yaml")) + list(Path("examples").glob("*.yaml"))
+    yaml_files = [f for f in yaml_files if not f.name.startswith("_template")]
+    
+    if not yaml_files:
+        console.print("[yellow]未找到任何项目文件[/yellow]")
+        return
+    
+    # 构建选项
+    choices = []
+    for f in yaml_files[:20]:
+        try:
+            paper = load_outline(f)
+            # 统计章节状态
+            total = len(paper.sections)
+            drafted = sum(1 for s in paper.sections if s.draft_latex)
+            refined = sum(1 for s in paper.sections if s.final_latex)
+            choices.append(questionary.Choice(
+                f"📄 {paper.title[:30]} ({drafted}/{total}草稿, {refined}/{total}润色)",
+                value=str(f),
+            ))
+        except Exception:
+            choices.append(questionary.Choice(f"❓ {f.name}", value=str(f)))
+    
+    choices.append(questionary.Choice("↩️  返回", value="back"))
+    
+    selected = questionary.select(
+        "选择要管理的项目：",
+        choices=choices,
+        style=STYLE,
+    ).ask()
+    
+    if selected == "back":
+        return
+    
+    file_path = Path(selected)
+    if not file_path.exists():
+        console.print("[red]文件不存在[/red]")
+        return
+    
+    paper = load_outline(file_path)
+    
+    # 显示项目详情
+    console.print(f"\n[bold]{paper.title}[/bold]")
+    console.print(f"文件: {file_path}")
+    console.print(f"状态: {paper.status.value}")
+    
+    # 统计
+    total_sections = len(paper.sections)
+    drafted_sections = sum(1 for s in paper.sections if s.draft_latex)
+    refined_sections = sum(1 for s in paper.sections if s.final_latex)
+    console.print(f"章节: {total_sections} 个 ({drafted_sections} 有草稿, {refined_sections} 已润色)")
+    
+    # 管理选项
+    action = questionary.select(
+        "\n选择操作：",
+        choices=[
+            questionary.Choice("🔄 重置草稿（清除所有草稿内容）", value="reset_draft"),
+            questionary.Choice("✨ 重置润色（保留草稿，清除润色）", value="reset_refine"),
+            questionary.Choice("📋 重置为大纲（清除所有内容）", value="reset_all"),
+            questionary.Choice("🗑️  删除项目", value="delete"),
+            questionary.Choice("📁 打开输出目录", value="open_output"),
+            questionary.Choice("↩️  返回", value="back"),
+        ],
+        style=STYLE,
+    ).ask()
+    
+    if action == "back":
+        return
+    
+    if action == "reset_draft":
+        if questionary.confirm("确定要清除所有草稿内容？此操作不可撤销！", default=False, style=STYLE).ask():
+            for section in paper.sections:
+                section.draft_latex = None
+                section.final_latex = None
+                for child in section.children:
+                    child.draft_latex = None
+                    child.final_latex = None
+            paper.status = PaperStatus.OUTLINE_CONFIRMED
+            save_outline(paper, file_path)
+            console.print("[green]✓ 已重置所有草稿[/green]")
+    
+    elif action == "reset_refine":
+        if questionary.confirm("确定要清除润色内容？草稿将保留。", default=False, style=STYLE).ask():
+            for section in paper.sections:
+                section.final_latex = None
+                for child in section.children:
+                    child.final_latex = None
+            paper.status = PaperStatus.DRAFT
+            save_outline(paper, file_path)
+            console.print("[green]✓ 已重置润色内容，草稿已保留[/green]")
+    
+    elif action == "reset_all":
+        if questionary.confirm("确定要清除所有内容？只保留大纲结构。", default=False, style=STYLE).ask():
+            for section in paper.sections:
+                section.draft_latex = None
+                section.final_latex = None
+                for child in section.children:
+                    child.draft_latex = None
+                    child.final_latex = None
+            paper.status = PaperStatus.OUTLINE_CONFIRMED
+            paper.abstract_cn = None
+            paper.abstract_en = None
+            save_outline(paper, file_path)
+            console.print("[green]✓ 已重置为大纲状态[/green]")
+    
+    elif action == "delete":
+        console.print(f"\n[red]警告：将删除以下内容：[/red]")
+        console.print(f"  - 配置文件: {file_path}")
+        output_dir = Path("output") / file_path.stem
+        if output_dir.exists():
+            console.print(f"  - 输出目录: {output_dir}")
+        
+        if questionary.confirm("确定要删除？此操作不可撤销！", default=False, style=STYLE).ask():
+            file_path.unlink()
+            console.print(f"[green]✓ 已删除配置文件[/green]")
+            
+            if output_dir.exists():
+                if questionary.confirm("是否同时删除输出目录？", default=False, style=STYLE).ask():
+                    import shutil
+                    shutil.rmtree(output_dir)
+                    console.print(f"[green]✓ 已删除输出目录[/green]")
+    
+    elif action == "open_output":
+        output_dir = Path("output") / file_path.stem
+        if output_dir.exists():
+            import subprocess
+            subprocess.run(["explorer", str(output_dir)], shell=True)
+        else:
+            console.print("[yellow]输出目录不存在[/yellow]")
+
+
 def diagram_flow():
     """图表生成流程"""
     console.print("\n[bold cyan]━━━ 🖼️ 生成图表 ━━━[/bold cyan]\n")
@@ -1074,6 +1211,8 @@ def run_tui():
                 new_paper_flow()
             elif choice == "continue":
                 continue_paper_flow()
+            elif choice == "manage":
+                manage_projects_flow()
             elif choice == "diagram":
                 diagram_flow()
             elif choice == "settings":
