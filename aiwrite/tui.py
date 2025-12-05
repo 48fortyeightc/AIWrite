@@ -568,10 +568,10 @@ def export_flow(file_path: Path, images_dir: Optional[str] = None):
         console.print("[cyan]📝 正在生成 Word...[/cyan]")
         
         # 生成 Word
-        exporter = WordExporter()
-        word_file = output_path / f"{paper.title}.docx"
         images_path = Path(images_dir) if images_dir else None
-        exporter.export(paper, word_file, images_base_path=images_path)
+        exporter = WordExporter(images_base_path=images_path)
+        word_file = output_path / f"{paper.title}.docx"
+        exporter.export(paper, word_file)
         
     except Exception as e:
         console.print(f"\n[red]错误: {e}[/red]")
@@ -687,10 +687,10 @@ def full_pipeline_flow(file_path: Path, images_dir: Optional[str] = None):
         
         # Word
         console.print("[cyan]📝 正在生成 Word...[/cyan]")
-        exporter = WordExporter()
-        word_file = output_path / f"{paper.title}.docx"
         images_path = Path(images_dir) if images_dir else None
-        exporter.export(paper, word_file, images_base_path=images_path)
+        exporter = WordExporter(images_base_path=images_path)
+        word_file = output_path / f"{paper.title}.docx"
+        exporter.export(paper, word_file)
         
     except Exception as e:
         console.print(f"\n[red]错误: {e}[/red]")
