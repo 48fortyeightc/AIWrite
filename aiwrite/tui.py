@@ -298,12 +298,26 @@ def new_paper_flow():
     next_action = questionary.select(
         "\n下一步：",
         choices=[
+            questionary.Choice("🖼️  生成 Mermaid 图表（流程图/ER图等）", value="diagram"),
             questionary.Choice("🚀 立即生成论文草稿", value="draft"),
             questionary.Choice("⚡ 一键全流程（草稿 + 润色 + 导出）", value="all"),
             questionary.Choice("📋 返回主菜单", value="menu"),
         ],
         style=STYLE,
     ).ask()
+    
+    if next_action == "diagram":
+        generate_diagrams_for_paper(paper, output_path, images_dir)
+        # 生成图表后继续询问下一步
+        next_action = questionary.select(
+            "\n下一步：",
+            choices=[
+                questionary.Choice("🚀 立即生成论文草稿", value="draft"),
+                questionary.Choice("⚡ 一键全流程（草稿 + 润色 + 导出）", value="all"),
+                questionary.Choice("📋 返回主菜单", value="menu"),
+            ],
+            style=STYLE,
+        ).ask()
     
     if next_action == "draft":
         generate_draft_flow(output_path, images_dir)
@@ -843,6 +857,207 @@ def manage_projects_flow():
             subprocess.run(["explorer", str(output_dir)], shell=True)
         else:
             console.print("[yellow]输出目录不存在[/yellow]")
+
+
+def generate_diagrams_for_paper(paper: Paper, yaml_path: Path, images_dir: str | None = None):
+    """为论文生成 Mermaid 图表"""
+    console.print("\n[bold cyan]━━━ 🖼️ 为论文生成图表 ━━━[/bold cyan]\n")
+    
+    # 根据论文主题推荐图表类型
+    console.print("[dim]根据您的论文，以下图表可能有用：[/dim]")
+    console.print("  • 系统架构图（流程图）")
+    console.print("  • 数据库 ER 图")
+    console.print("  • 业务流程时序图")
+    console.print("  • 功能模块类图")
+    console.print("")
+    
+    # 选择要生成的图表
+    diagram_choices = questionary.checkbox(
+        "选择要生成的图表类型：",
+        choices=[
+            questionary.Choice("📊 系统架构/流程图", value="flowchart", checked=True),
+            questionary.Choice("🗃️  数据库 ER 图", value="er", checked=True),
+            questionary.Choice("🔄 业务流程时序图", value="sequence"),
+            questionary.Choice("📦 功能模块类图", value="class"),
+            questionary.Choice("🧠 系统功能思维导图", value="mindmap"),
+        ],
+        style=STYLE,
+    ).ask()
+    
+    if not diagram_choices:
+        console.print("[yellow]未选择任何图表[/yellow]")
+        return
+    
+    # 确定图表输出目录
+    if images_dir:
+        output_dir = Path(images_dir)
+    else:
+        output_dir = Path("output") / yaml_path.stem / "diagrams"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    console.print(f"\n[dim]图表将保存到: {output_dir}[/dim]\n")
+    
+    from .diagram import MermaidRenderer
+    renderer = MermaidRenderer()
+    
+    generated_files = []
+    
+    for diagram_type in diagram_choices:
+        console.print(f"[cyan]正在生成 {diagram_type} 图表...[/cyan]")
+        
+        # 根据论文信息生成图表代码
+        mermaid_code = _generate_diagram_code_for_paper(paper, diagram_type)
+        
+        if mermaid_code:
+            output_file = output_dir / f"{diagram_type}_{paper.title[:10]}.png"
+            try:
+                result = asyncio.run(renderer.render_to_file(mermaid_code, output_file))
+                if result and result.exists():
+                    console.print(f"[green]  ✓ 已生成: {result.name}[/green]")
+                    generated_files.append(result)
+                else:
+                    console.print(f"[yellow]  ⚠ 生成失败[/yellow]")
+            except Exception as e:
+                console.print(f"[red]  ✗ 错误: {e}[/red]")
+    
+    if generated_files:
+        console.print(f"\n[green]✓ 共生成 {len(generated_files)} 个图表[/green]")
+        
+        # 询问是否打开输出目录
+        if questionary.confirm("是否打开图表目录？", default=True, style=STYLE).ask():
+            import subprocess
+            subprocess.run(["explorer", str(output_dir)], shell=True)
+
+
+def _generate_diagram_code_for_paper(paper: Paper, diagram_type: str) -> str:
+    """根据论文信息生成 Mermaid 图表代码"""
+    title = paper.title
+    
+    if diagram_type == "flowchart":
+        # 系统架构流程图
+        return f"""flowchart TB
+    subgraph 表示层
+        A[用户界面]
+    end
+    
+    subgraph 业务层
+        B[业务逻辑处理]
+        C[数据验证]
+        D[权限控制]
+    end
+    
+    subgraph 数据层
+        E[(数据库)]
+        F[缓存]
+    end
+    
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> E
+    E --> F"""
+    
+    elif diagram_type == "er":
+        # ER 图
+        return """erDiagram
+    USER ||--o{ ORDER : places
+    USER {
+        int id PK
+        string username
+        string password
+        string email
+        datetime created_at
+    }
+    ORDER ||--|{ ORDER_ITEM : contains
+    ORDER {
+        int id PK
+        int user_id FK
+        datetime order_date
+        string status
+        decimal total
+    }
+    ORDER_ITEM {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int quantity
+        decimal price
+    }
+    PRODUCT ||--o{ ORDER_ITEM : "is ordered"
+    PRODUCT {
+        int id PK
+        string name
+        string description
+        decimal price
+        int stock
+    }"""
+    
+    elif diagram_type == "sequence":
+        # 时序图
+        return """sequenceDiagram
+    participant U as 用户
+    participant C as 客户端
+    participant S as 服务器
+    participant D as 数据库
+    
+    U->>C: 输入请求
+    C->>S: 发送请求
+    S->>D: 查询数据
+    D-->>S: 返回结果
+    S-->>C: 响应数据
+    C-->>U: 显示结果"""
+    
+    elif diagram_type == "class":
+        # 类图
+        return """classDiagram
+    class User {
+        +int id
+        +String username
+        +String password
+        +login()
+        +logout()
+    }
+    
+    class Admin {
+        +manageUsers()
+        +viewReports()
+    }
+    
+    class Service {
+        +processRequest()
+        +validateData()
+    }
+    
+    class Database {
+        +query()
+        +insert()
+        +update()
+        +delete()
+    }
+    
+    User <|-- Admin
+    User --> Service
+    Service --> Database"""
+    
+    elif diagram_type == "mindmap":
+        # 思维导图
+        return f"""mindmap
+    root(({title}))
+        用户管理
+            登录注册
+            权限控制
+            信息维护
+        核心功能
+            数据管理
+            业务处理
+            报表生成
+        系统管理
+            系统配置
+            日志管理
+            备份恢复"""
+    
+    return ""
 
 
 def diagram_flow():
