@@ -384,9 +384,9 @@ class OutlineInitializer:
                 level=s.get("level", level),
                 target_words=s.get("target_words"),
                 notes=s.get("notes"),
-                figures=figures if figures else None,
-                tables=tables if tables else None,
-                children=children if children else None,
+                figures=figures,
+                tables=tables,
+                children=children,
             )
         
         sections = []
