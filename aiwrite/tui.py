@@ -37,6 +37,15 @@ from .render import LatexRenderer, WordExporter
 console = Console()
 
 
+def has_abstract(paper: Paper) -> bool:
+    """检查论文是否已有摘要"""
+    for section in paper.sections:
+        title_lower = section.title.lower()
+        if "摘要" in title_lower and section.final_latex:
+            return True
+    return bool(paper.abstract_cn)
+
+
 # 自定义样式
 STYLE = questionary.Style([
     ("qmark", "fg:cyan bold"),
@@ -122,6 +131,9 @@ def new_paper_flow():
             "图片目录路径：",
             style=STYLE,
         ).ask()
+        if images_dir:
+            # 去掉用户可能输入的引号
+            images_dir = images_dir.strip().strip('"').strip("'")
     
     # 4. 大纲输入方式
     outline_method = questionary.select(
@@ -141,10 +153,16 @@ def new_paper_flow():
             "大纲文件路径：",
             style=STYLE,
         ).ask()
-        if outline_file and Path(outline_file).exists():
-            outline_text = Path(outline_file).read_text(encoding="utf-8")
+        if outline_file:
+            # 去掉用户可能输入的引号
+            outline_file = outline_file.strip().strip('"').strip("'")
+            if Path(outline_file).exists():
+                outline_text = Path(outline_file).read_text(encoding="utf-8")
+            else:
+                console.print(f"[red]文件不存在: {outline_file}[/red]")
+                return
         else:
-            console.print("[red]文件不存在[/red]")
+            console.print("[red]未输入路径[/red]")
             return
             
     elif outline_method == "template":
@@ -160,15 +178,25 @@ def new_paper_flow():
         outline_text = get_template(template_type)
         
     elif outline_method == "manual":
-        console.print("[dim]请输入大纲（每行一个章节，按 Ctrl+D 或 Ctrl+Z 结束）：[/dim]")
+        console.print("[dim]请输入大纲（每行一个章节，输入空行两次或输入 END 结束）：[/dim]")
         lines = []
+        empty_count = 0
         try:
             while True:
                 line = input()
-                lines.append(line)
+                if line.strip().upper() == "END":
+                    break
+                if line.strip() == "":
+                    empty_count += 1
+                    if empty_count >= 2:
+                        break
+                    lines.append(line)
+                else:
+                    empty_count = 0
+                    lines.append(line)
         except EOFError:
             pass
-        outline_text = "\n".join(lines)
+        outline_text = "\n".join(lines).strip()
     
     if not outline_text:
         console.print("[yellow]未输入大纲，已取消[/yellow]")
@@ -221,21 +249,33 @@ def new_paper_flow():
             progress.update(task, description="正在解析大纲...")
             
             async def run_init():
+                images_path = Path(images_dir) if images_dir else None
+                
                 initializer = OutlineInitializer(
-                    title=title,
                     thinking_provider=thinking_provider,
+                    images_path=images_path,
+                )
+                
+                # 扫描图片和表格
+                images = []
+                tables = []
+                
+                if images_path and images_path.exists():
+                    progress.update(task, description="正在扫描图片...")
+                    images = await initializer.scan_images()
+                    tables = initializer.scan_tables()  # 同步方法
+                
+                progress.update(task, description="正在解析大纲...")
+                config = await initializer.parse_outline(
+                    paper_title=title,
+                    outline_text=outline_text,
+                    images=images,
+                    tables=tables,
                     target_words=target_words,
                 )
                 
-                # 如果有图片目录，先扫描图片
-                if images_dir:
-                    progress.update(task, description="正在扫描图片...")
-                    images_path = Path(images_dir)
-                    if images_path.exists():
-                        await initializer.scan_images(images_path)
-                
-                progress.update(task, description="正在解析大纲...")
-                paper = await initializer.parse_outline(outline_text)
+                # 构建 Paper 对象
+                paper = initializer.build_paper(config)
                 
                 return paper
             
@@ -265,7 +305,7 @@ def new_paper_flow():
     ).ask()
     
     if next_action == "draft":
-        generate_draft_flow(output_path)
+        generate_draft_flow(output_path, images_dir)
     elif next_action == "all":
         full_pipeline_flow(output_path, images_dir)
 
@@ -350,19 +390,27 @@ def continue_paper_flow():
         style=STYLE,
     ).ask()
     
+    # 需要图片目录的操作：一键完成、导出、草稿（如果后续要导出）
+    images_dir: str | None = None
+    if action in ["draft", "refine", "all", "export"]:
+        if questionary.confirm("是否有图片需要插入 Word？", default=False, style=STYLE).ask():
+            images_dir = questionary.path("图片目录：", style=STYLE).ask()
+            if images_dir:
+                images_dir = images_dir.strip('"')
+    
     if action == "draft":
-        generate_draft_flow(file_path)
+        generate_draft_flow(file_path, images_dir)
     elif action == "refine":
-        refine_flow(file_path)
+        refine_flow(file_path, images_dir)
     elif action == "all":
-        full_pipeline_flow(file_path)
+        full_pipeline_flow(file_path, images_dir)
     elif action == "export":
-        export_flow(file_path)
+        export_flow(file_path, images_dir)
     elif action == "status":
         show_detailed_status(paper)
 
 
-def generate_draft_flow(file_path: Path):
+def generate_draft_flow(file_path: Path, images_dir: str | None = None):
     """生成草稿流程"""
     console.print("\n[bold cyan]━━━ ✏️ 生成草稿 ━━━[/bold cyan]\n")
     
@@ -372,25 +420,17 @@ def generate_draft_flow(file_path: Path):
     
     console.print(f"[dim]使用模型: {writing_provider.model}[/dim]\n")
     
-    # 统计需要生成的章节
-    sections_to_draft = [s for s in paper.get_all_sections() 
-                         if s.level == 2 and not s.draft_latex]
+    # 统计需要生成的章节（按章整体生成）
+    main_chapters = [s for s in paper.sections if s.level == 1 and not s.draft_latex]
     
-    if not sections_to_draft:
+    if not main_chapters:
         console.print("[green]所有章节已有草稿，无需生成[/green]")
-        return
-    
-    console.print(f"需要生成 {len(sections_to_draft)} 个章节的草稿\n")
-    
-    step = SectionDraftStep(writing_provider)
-    
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        task = progress.add_task("正在生成...", total=len(sections_to_draft))
+    else:
+        console.print(f"需要生成 {len(main_chapters)} 章的草稿\n")
         
+        step = SectionDraftStep(writing_provider)
+        
+        # 直接运行，step 内部会显示进度
         async def run():
             context = PipelineContext(
                 paper=paper,
@@ -399,12 +439,6 @@ def generate_draft_flow(file_path: Path):
                     temperature=config.temperature,
                 ),
             )
-            
-            for i, section in enumerate(sections_to_draft):
-                progress.update(task, description=f"正在生成: {section.title[:30]}...")
-                # 这里会在 step 内部逐个处理
-                await asyncio.sleep(0)  # 让进度条有机会更新
-            
             return await step.execute(context)
         
         try:
@@ -413,10 +447,10 @@ def generate_draft_flow(file_path: Path):
         except Exception as e:
             console.print(f"\n[red]错误: {e}[/red]")
             return
-    
-    # 保存结果
-    save_outline(paper, file_path)
-    console.print(f"\n[green]✓ 草稿已保存到: {file_path}[/green]")
+        
+        # 保存结果
+        save_outline(paper, file_path)
+        console.print(f"\n[green]✓ 草稿已保存到: {file_path}[/green]")
     
     # 下一步
     next_action = questionary.select(
@@ -430,12 +464,12 @@ def generate_draft_flow(file_path: Path):
     ).ask()
     
     if next_action == "refine":
-        refine_flow(file_path)
+        refine_flow(file_path, images_dir)
     elif next_action == "export":
-        export_flow(file_path)
+        export_flow(file_path, images_dir)
 
 
-def refine_flow(file_path: Path):
+def refine_flow(file_path: Path, images_dir: str | None = None):
     """润色流程"""
     console.print("\n[bold cyan]━━━ ✨ 润色内容 ━━━[/bold cyan]\n")
     
@@ -443,38 +477,32 @@ def refine_flow(file_path: Path):
     config = load_config()
     writing_provider = create_writing_provider(config)
     
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        task = progress.add_task("正在润色...", total=None)
-        
-        step = SectionRefineStep(writing_provider)
-        
-        async def run():
-            context = PipelineContext(
-                paper=paper,
-                llm_options=LLMOptions(
-                    max_tokens=config.max_tokens,
-                    temperature=config.temperature,
-                ),
-            )
-            return await step.execute(context)
-        
-        try:
-            result = asyncio.run(run())
-            paper = result.paper
-        except Exception as e:
-            console.print(f"\n[red]错误: {e}[/red]")
-            return
+    step = SectionRefineStep(writing_provider)
+    
+    # 直接运行，step 内部会显示进度
+    async def run():
+        context = PipelineContext(
+            paper=paper,
+            llm_options=LLMOptions(
+                max_tokens=config.max_tokens,
+                temperature=config.temperature,
+            ),
+        )
+        return await step.execute(context)
+    
+    try:
+        result = asyncio.run(run())
+        paper = result.paper
+    except Exception as e:
+        console.print(f"\n[red]错误: {e}[/red]")
+        return
     
     save_outline(paper, file_path)
     console.print(f"\n[green]✓ 润色完成，已保存[/green]")
     
     # 下一步
     if questionary.confirm("是否导出 Word？", default=True, style=STYLE).ask():
-        export_flow(file_path)
+        export_flow(file_path, images_dir)
 
 
 def export_flow(file_path: Path, images_dir: Optional[str] = None):
@@ -494,7 +522,7 @@ def export_flow(file_path: Path, images_dir: Optional[str] = None):
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     
-    # 图片目录
+    # 图片目录（只在没有传入时询问）
     if not images_dir:
         has_images = questionary.confirm(
             "是否需要在 Word 中插入图片？",
@@ -507,47 +535,46 @@ def export_flow(file_path: Path, images_dir: Optional[str] = None):
                 "图片目录路径：",
                 style=STYLE,
             ).ask()
+            if images_dir:
+                images_dir = images_dir.strip().strip('"').strip("'")
+    else:
+        console.print(f"[dim]图片目录: {images_dir}[/dim]")
     
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        task = progress.add_task("正在生成摘要...", total=None)
+    try:
+        config = load_config()
         
-        try:
-            # 生成摘要（如果没有）
-            if not paper.abstract_cn:
-                config = load_config()
-                thinking_provider = create_thinking_provider(config)
-                abstract_step = AbstractGenerateStep(thinking_provider)
-                
-                async def gen_abstract():
-                    context = PipelineContext(paper=paper, llm_options=LLMOptions())
-                    return await abstract_step.execute(context)
-                
-                result = asyncio.run(gen_abstract())
-                paper = result.paper
+        # 生成摘要（如果没有）
+        if not has_abstract(paper):
+            console.print("[cyan]📋 正在生成摘要...[/cyan]")
+            thinking_provider = create_thinking_provider(config)
+            abstract_step = AbstractGenerateStep(thinking_provider)
             
-            progress.update(task, description="正在生成 LaTeX...")
+            async def gen_abstract():
+                context = PipelineContext(paper=paper, llm_options=LLMOptions())
+                return await abstract_step.execute(context)
             
-            # 生成 LaTeX
-            renderer = LatexRenderer()
-            latex_content = renderer.render(paper)
-            latex_file = output_path / f"{paper.title}.tex"
-            latex_file.write_text(latex_content, encoding="utf-8")
-            
-            progress.update(task, description="正在生成 Word...")
-            
-            # 生成 Word
-            exporter = WordExporter()
-            word_file = output_path / f"{paper.title}.docx"
-            images_path = Path(images_dir) if images_dir else None
-            exporter.export(paper, word_file, images_base_path=images_path)
-            
-        except Exception as e:
-            console.print(f"\n[red]错误: {e}[/red]")
-            return
+            result = asyncio.run(gen_abstract())
+            paper = result.paper
+        
+        console.print("[cyan]📄 正在生成 LaTeX...[/cyan]")
+        
+        # 生成 LaTeX
+        renderer = LatexRenderer()
+        latex_content = renderer.render(paper)
+        latex_file = output_path / f"{paper.title}.tex"
+        latex_file.write_text(latex_content, encoding="utf-8")
+        
+        console.print("[cyan]📝 正在生成 Word...[/cyan]")
+        
+        # 生成 Word
+        exporter = WordExporter()
+        word_file = output_path / f"{paper.title}.docx"
+        images_path = Path(images_dir) if images_dir else None
+        exporter.export(paper, word_file, images_base_path=images_path)
+        
+    except Exception as e:
+        console.print(f"\n[red]错误: {e}[/red]")
+        return
     
     console.print(f"\n[green]✓ 导出完成！[/green]")
     console.print(f"  LaTeX: {latex_file}")
@@ -604,76 +631,71 @@ def full_pipeline_flow(file_path: Path, images_dir: Optional[str] = None):
     
     config = load_config()
     
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        task = progress.add_task("准备中...", total=None)
+    try:
+        # 1. 生成草稿
+        if paper.status == PaperStatus.OUTLINE:
+            console.print("\n[bold blue]━━━ [1/4] 生成草稿 ━━━[/bold blue]\n")
+            writing_provider = create_writing_provider(config)
+            step = SectionDraftStep(writing_provider)
+            
+            async def run_draft():
+                context = PipelineContext(paper=paper, llm_options=LLMOptions())
+                return await step.execute(context)
+            
+            result = asyncio.run(run_draft())
+            paper = result.paper
+            save_outline(paper, file_path)
         
-        try:
-            # 1. 生成草稿
-            if paper.status == PaperStatus.OUTLINE:
-                progress.update(task, description="[1/4] 正在生成草稿...")
-                writing_provider = create_writing_provider(config)
-                step = SectionDraftStep(writing_provider)
-                
-                async def run_draft():
-                    context = PipelineContext(paper=paper, llm_options=LLMOptions())
-                    return await step.execute(context)
-                
-                result = asyncio.run(run_draft())
-                paper = result.paper
-                save_outline(paper, file_path)
+        # 2. 润色
+        if paper.status in [PaperStatus.OUTLINE, PaperStatus.DRAFTED]:
+            console.print("\n[bold blue]━━━ [2/4] 润色内容 ━━━[/bold blue]\n")
+            writing_provider = create_writing_provider(config)
+            step = SectionRefineStep(writing_provider)
             
-            # 2. 润色
-            if paper.status in [PaperStatus.OUTLINE, PaperStatus.DRAFTED]:
-                progress.update(task, description="[2/4] 正在润色内容...")
-                writing_provider = create_writing_provider(config)
-                step = SectionRefineStep(writing_provider)
-                
-                async def run_refine():
-                    context = PipelineContext(paper=paper, llm_options=LLMOptions())
-                    return await step.execute(context)
-                
-                result = asyncio.run(run_refine())
-                paper = result.paper
-                save_outline(paper, file_path)
+            async def run_refine():
+                context = PipelineContext(paper=paper, llm_options=LLMOptions())
+                return await step.execute(context)
             
-            # 3. 生成摘要
-            if not paper.abstract_cn:
-                progress.update(task, description="[3/4] 正在生成摘要...")
-                thinking_provider = create_thinking_provider(config)
-                step = AbstractGenerateStep(thinking_provider)
-                
-                async def run_abstract():
-                    context = PipelineContext(paper=paper, llm_options=LLMOptions())
-                    return await step.execute(context)
-                
-                result = asyncio.run(run_abstract())
-                paper = result.paper
-                save_outline(paper, file_path)
+            result = asyncio.run(run_refine())
+            paper = result.paper
+            save_outline(paper, file_path)
+        
+        # 3. 生成摘要
+        if not has_abstract(paper):
+            console.print("\n[bold blue]━━━ [3/4] 生成摘要 ━━━[/bold blue]\n")
+            thinking_provider = create_thinking_provider(config)
+            step = AbstractGenerateStep(thinking_provider)
             
-            # 4. 导出
-            progress.update(task, description="[4/4] 正在导出文档...")
+            async def run_abstract():
+                context = PipelineContext(paper=paper, llm_options=LLMOptions())
+                return await step.execute(context)
             
-            # LaTeX
-            renderer = LatexRenderer()
-            latex_content = renderer.render(paper)
-            latex_file = output_path / f"{paper.title}.tex"
-            latex_file.write_text(latex_content, encoding="utf-8")
-            
-            # Word
-            exporter = WordExporter()
-            word_file = output_path / f"{paper.title}.docx"
-            images_path = Path(images_dir) if images_dir else None
-            exporter.export(paper, word_file, images_base_path=images_path)
-            
-        except Exception as e:
-            console.print(f"\n[red]错误: {e}[/red]")
-            import traceback
-            traceback.print_exc()
-            return
+            result = asyncio.run(run_abstract())
+            paper = result.paper
+            save_outline(paper, file_path)
+        
+        # 4. 导出
+        console.print("\n[bold blue]━━━ [4/4] 导出文档 ━━━[/bold blue]\n")
+        
+        # LaTeX
+        console.print("[cyan]📄 正在生成 LaTeX...[/cyan]")
+        renderer = LatexRenderer()
+        latex_content = renderer.render(paper)
+        latex_file = output_path / f"{paper.title}.tex"
+        latex_file.write_text(latex_content, encoding="utf-8")
+        
+        # Word
+        console.print("[cyan]📝 正在生成 Word...[/cyan]")
+        exporter = WordExporter()
+        word_file = output_path / f"{paper.title}.docx"
+        images_path = Path(images_dir) if images_dir else None
+        exporter.export(paper, word_file, images_base_path=images_path)
+        
+    except Exception as e:
+        console.print(f"\n[red]错误: {e}[/red]")
+        import traceback
+        traceback.print_exc()
+        return
     
     console.print(f"\n[bold green]✅ 全部完成！[/bold green]")
     console.print(f"  LaTeX: {latex_file}")
@@ -850,7 +872,7 @@ def show_detailed_status(paper: Paper):
     console.print(f"目标字数: {paper.target_words}")
     console.print(f"关键词: {', '.join(paper.keywords)}")
     
-    if paper.abstract_cn:
+    if has_abstract(paper):
         console.print(f"\n[green]✓ 已生成摘要[/green]")
     else:
         console.print(f"\n[dim]- 未生成摘要[/dim]")
