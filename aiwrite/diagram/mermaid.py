@@ -48,11 +48,19 @@ MERMAID_HTML_TEMPLATE = """
     <script>
         mermaid.initialize({{ 
             startOnLoad: true,
-            theme: 'default',
+            theme: 'neutral',
             securityLevel: 'loose',
             flowchart: {{
                 useMaxWidth: false,
                 htmlLabels: true
+            }},
+            themeVariables: {{
+                primaryColor: '#e0e0e0',
+                primaryTextColor: '#333333',
+                primaryBorderColor: '#999999',
+                lineColor: '#666666',
+                secondaryColor: '#f5f5f5',
+                tertiaryColor: '#fafafa'
             }}
         }});
     </script>
@@ -91,8 +99,16 @@ MERMAID_OFFLINE_HTML_TEMPLATE = """
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({{ 
             startOnLoad: true,
-            theme: 'default',
-            securityLevel: 'loose'
+            theme: 'neutral',
+            securityLevel: 'loose',
+            themeVariables: {{
+                primaryColor: '#e0e0e0',
+                primaryTextColor: '#333333',
+                primaryBorderColor: '#999999',
+                lineColor: '#666666',
+                secondaryColor: '#f5f5f5',
+                tertiaryColor: '#fafafa'
+            }}
         }});
     </script>
 </body>

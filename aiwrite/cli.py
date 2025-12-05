@@ -540,14 +540,19 @@ def display_outline(paper: Paper) -> None:
     console.print(table)
 
 
-@app.callback()
-def main():
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
     """
     AIWrite - 基于 LLM 的学术论文自动写作系统
     
     从「题目 + 章节大纲」生成完整的 Word 论文
+    
+    直接运行 aiwrite（不带参数）进入交互式界面
     """
-    pass
+    # 如果没有指定子命令，启动交互式界面
+    if ctx.invoked_subcommand is None:
+        from .tui import run_tui
+        run_tui()
 
 
 if __name__ == "__main__":

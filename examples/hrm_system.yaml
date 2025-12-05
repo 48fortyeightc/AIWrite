@@ -1,0 +1,229 @@
+paper:
+  title: 基于Spring Boot的人事管理系统设计与实现
+  authors: []
+  keywords:
+  - Spring Boot
+  - 人事管理系统
+  - 系统设计
+  - Java开发
+  - Web应用
+  keywords_en:
+  - Spring Boot
+  - Personnel Management System
+  - System Design
+  - Java Development
+  - Web Application
+  language: zh
+  style: academic
+  target_words: 15000
+  status: pending_outline
+sections:
+- id: ch1
+  title: 第1章 绪论
+  level: 1
+  target_words: 1500
+  notes: 介绍人事管理系统的研究背景、意义、国内外研究现状、本系统功能特色、技术路线及论文结构
+  children:
+  - id: ch1-1
+    title: 1.1 研究背景与意义
+    level: 2
+    target_words: 300
+    notes: 分析当前企业人事管理的痛点及信息化管理的必要性，阐述本系统开发的实际意义
+  - id: ch1-2
+    title: 1.2 国内/国外研究现状
+    level: 2
+    target_words: 350
+    notes: 综述国内外人事管理系统的发展现状、技术特点及应用情况，指出当前研究的不足与本研究的切入点
+  - id: ch1-3
+    title: 1.3 本系统的主要功能与特色
+    level: 2
+    target_words: 300
+    notes: 概述系统的核心功能模块，突出本系统与现有系统相比的创新点和技术特色
+  - id: ch1-4
+    title: 1.4 技术路线与开发环境
+    level: 2
+    target_words: 300
+    notes: 详细说明系统开发采用的技术栈(Spring Boot、MySQL、Vue等)及开发、运行环境配置
+  - id: ch1-5
+    title: 1.5 论文结构安排
+    level: 2
+    target_words: 250
+    notes: 简要介绍论文各章节的主要内容和逻辑关系
+- id: ch2
+  title: 第2章 系统需求分析
+  level: 1
+  target_words: 2000
+  notes: 对系统进行全面需求分析，包括可行性分析、业务流程、功能结构、用例分析和功能需求说明
+  children:
+  - id: ch2-1
+    title: 2.1 可行性分析
+    level: 2
+    target_words: 400
+    notes: 从技术可行性、经济可行性、操作可行性三个方面分析系统开发的可行性
+  - id: ch2-2
+    title: 2.2 系统业务流程分析
+    level: 2
+    target_words: 400
+    notes: 分析人事管理系统的主要业务流程，包括员工入职、考勤管理、请假审批、薪资发放等流程
+  - id: ch2-3
+    title: 2.3 功能结构分析
+    level: 2
+    target_words: 300
+    notes: 分析系统的整体功能结构，划分主要功能模块及其子模块
+  - id: ch2-4
+    title: 2.4 用例分析
+    level: 2
+    target_words: 300
+    notes: 通过用例图描述系统参与者与系统功能之间的交互关系
+  - id: ch2-5
+    title: 2.5 功能需求说明表
+    level: 2
+    target_words: 600
+    notes: 详细列出系统各功能模块的具体需求，包括功能描述、输入输出、处理逻辑等
+- id: ch3
+  title: 第3章 系统总体设计
+  level: 1
+  target_words: 2500
+  notes: 进行系统的总体设计，包括系统架构设计、模块划分与模块关系设计和数据库设计
+  children:
+  - id: ch3-1
+    title: 3.1 系统架构设计
+    level: 2
+    target_words: 500
+    notes: 设计系统的整体架构，采用分层架构设计，包括表现层、业务逻辑层、数据访问层
+  - id: ch3-2
+    title: 3.2 模块划分与模块关系设计
+    level: 2
+    target_words: 500
+    notes: 详细划分系统模块，设计模块之间的关系和接口
+  - id: ch3-3
+    title: 3.3 数据库设计
+    level: 2
+    target_words: 1500
+    notes: 设计系统的数据库结构，包括实体关系设计和数据表结构设计
+    children:
+    - id: ch3-3-1
+      title: 3.3.1 实体关系设计
+      level: 3
+      target_words: 700
+      notes: 设计系统的实体关系模型，描述实体之间的关联关系
+    - id: ch3-3-2
+      title: 3.3.2 数据表结构设计
+      level: 3
+      target_words: 800
+      notes: 详细设计各数据表的结构，包括字段名、数据类型、约束条件等
+- id: ch4
+  title: 第4章 系统详细设计
+  level: 1
+  target_words: 3000
+  notes: 对系统各主要功能模块进行详细设计，包括用户/权限管理、员工信息管理、考勤/请假管理、薪资/工资计算、报表/查询和界面设计
+  children:
+  - id: ch4-1
+    title: 4.1 用户/权限管理模块设计
+    level: 2
+    target_words: 500
+    notes: 设计用户管理和权限控制模块，包括用户登录、角色管理、权限分配等功能
+  - id: ch4-2
+    title: 4.2 员工信息管理模块设计
+    level: 2
+    target_words: 500
+    notes: 设计员工信息管理模块，包括员工信息的添加、修改、查询、删除等功能
+  - id: ch4-3
+    title: 4.3 考勤/请假模块设计
+    level: 2
+    target_words: 600
+    notes: 设计考勤管理和请假审批模块，包括考勤记录、请假申请、审批流程等功能
+  - id: ch4-4
+    title: 4.4 薪资/工资计算模块设计
+    level: 2
+    target_words: 600
+    notes: 设计薪资管理和工资计算模块，包括薪资项目设置、工资计算、薪资发放等功能
+  - id: ch4-5
+    title: 4.5 报表/查询模块设计
+    level: 2
+    target_words: 400
+    notes: 设计各类人事报表和数据查询功能，包括员工信息报表、考勤报表、薪资报表等
+  - id: ch4-6
+    title: 4.6 界面设计
+    level: 2
+    target_words: 400
+    notes: 设计系统的用户界面，包括界面布局、色彩搭配、交互设计等
+- id: ch5
+  title: 第5章 系统实现
+  level: 1
+  target_words: 2500
+  notes: 介绍系统的实现过程，包括开发环境与技术实现说明、主要功能实现展示和部分关键代码
+  children:
+  - id: ch5-1
+    title: 5.1 开发环境与技术实现说明
+    level: 2
+    target_words: 500
+    notes: 详细说明系统的开发环境配置和技术实现细节，包括开发工具、框架版本、数据库配置等
+  - id: ch5-2
+    title: 5.2 主要功能实现展示
+    level: 2
+    target_words: 1500
+    notes: 展示系统各主要功能模块的实现效果，包括界面截图和功能说明
+    figures:
+    - id: fig5-1
+      path: img2\1.png
+      caption: 系统登录界面图
+    - id: fig5-2
+      path: img2\2.png
+      caption: 人事管理驾驶舱系统首页界面图
+    - id: fig5-3
+      path: img2\4.png
+      caption: 员工管理功能界面图
+    - id: fig5-4
+      path: img2\5.png
+      caption: 考勤与请假管理功能界面图
+    - id: fig5-5
+      path: img2\3.png
+      caption: 薪资管理功能界面图
+  - id: ch5-3
+    title: 5.3 部分关键代码
+    level: 2
+    target_words: 500
+    notes: 列出系统开发中的部分关键代码，包括核心业务逻辑、数据库操作、接口实现等
+- id: ch6
+  title: 第6章 系统测试
+  level: 1
+  target_words: 2000
+  notes: 对系统进行测试，包括测试环境说明、功能测试和性能测试
+  children:
+  - id: ch6-1
+    title: 6.1 测试环境说明
+    level: 2
+    target_words: 300
+    notes: 说明系统测试的硬件环境、软件环境和网络环境
+  - id: ch6-2
+    title: 6.2 功能测试
+    level: 2
+    target_words: 800
+    notes: 设计测试用例对系统各功能模块进行测试，验证功能是否符合需求
+  - id: ch6-3
+    title: 6.3 性能测试
+    level: 2
+    target_words: 900
+    notes: 对系统进行性能测试，包括响应时间、并发用户数、资源占用等指标的测试
+- id: ch7
+  title: 第7章 总结与展望
+  level: 1
+  target_words: 1500
+  notes: 总结本文工作，分析系统的优点与不足，展望后续改进与功能扩展
+  children:
+  - id: ch7-1
+    title: 7.1 本文工作总结
+    level: 2
+    target_words: 400
+    notes: 总结本文完成的主要工作和取得的成果
+  - id: ch7-2
+    title: 7.2 系统优点与不足
+    level: 2
+    target_words: 500
+    notes: 分析系统的优点和存在的不足之处
+  - id: ch7-3
+    title: 7.3 后续改进与功能扩展展望
+    level: 2
+    target_words: 600
+    notes: 提出系统的后续改进方向和功能扩展的展望

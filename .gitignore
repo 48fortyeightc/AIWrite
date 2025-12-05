@@ -35,19 +35,15 @@ ENV/
 .env
 .env.local
 
-# Output files
+# Output files (generated)
 output/
-*.tex
-*.docx
-*.pdf
-*.aux
-*.log
-*.toc
-*.out
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Dev scripts (keep tests/)
+dev/
 
 # Jupyter
 .ipynb_checkpoints/
