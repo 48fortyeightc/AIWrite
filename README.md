@@ -20,7 +20,9 @@ pip install -e .
 playwright install chromium
 ```
 
-### 2) 配置环境变量（不要提交 API Key）
+### 2) 启动与配置
+- 运行入口就是命令 `aiwrite`（或 `python -m aiwrite`），安装完成后可直接在终端调用，无需额外脚本。
+- 配置环境变量（不要提交 API Key）：
 - 复制 `.env.example` 为 `.env`，填入你的密钥和模型配置。
 - `.env` 已在 `.gitignore` 中，默认不会被上传；若曾误加可执行 `git rm --cached .env` 解除跟踪。
 - 示例：
