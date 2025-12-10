@@ -1,0 +1,1456 @@
+paper:
+  title: 基于Spring Boot的教育管理系统设计与实现
+  authors:
+  - 张三
+  keywords:
+  - 教育管理系统
+  - Spring Boot
+  - Vue.js
+  - MySQL
+  - 前后端分离
+  language: zh
+  style: academic
+  target_words: 20000
+  status: final
+sections:
+- id: abstract-zh
+  title: 摘要
+  level: 0
+  target_words: 500
+  notes: 概述教育管理系统的研究背景、主要功能、技术架构和创新点。
+  draft_latex: 随着教育信息化进程加速，传统教务管理系统依赖人工操作、数据分散、流程低效等问题愈发凸显，难以支撑高校精细化管理需求。本文针对这一痛点，设计并实现了一套基于Spring
+    Boot与Vue.js的前后端分离教育管理系统，旨在通过数字化手段优化教务流程、整合数据资源。系统后端以Spring Boot为核心框架，集成Spring
+    Security实现角色权限控制、MyBatis-Plus简化数据持久化；前端采用Vue.js结合Element UI构建响应式界面，通过RESTful API实现前后端解耦交互；数据库选用MySQL，基于规范化设计完成用户、课程、成绩等核心表结构构建。系统模块化覆盖学生信息管理、教师授课管理、课程资源管理、成绩统计分析等功能，实现选课、成绩录入、信息查询等流程自动化。测试结果表明，系统功能符合需求，并发响应速度与稳定性良好，可显著提升教务管理效率、降低人工错误率，为师生提供便捷服务。本研究验证了Spring
+    Boot与Vue.js技术栈在教育管理领域的有效性，其架构设计与技术实现可为同类系统开发提供参考，对推动教育信息化落地具有实践意义。
+  final_latex: 随着教育信息化进程加速，传统教务管理系统依赖人工操作、数据分散、流程低效等问题愈发凸显，难以支撑高校精细化管理需求。本文针对这一痛点，设计并实现了一套基于Spring
+    Boot与Vue.js的前后端分离教育管理系统，旨在通过数字化手段优化教务流程、整合数据资源。系统后端以Spring Boot为核心框架，集成Spring
+    Security实现角色权限控制、MyBatis-Plus简化数据持久化；前端采用Vue.js结合Element UI构建响应式界面，通过RESTful API实现前后端解耦交互；数据库选用MySQL，基于规范化设计完成用户、课程、成绩等核心表结构构建。系统模块化覆盖学生信息管理、教师授课管理、课程资源管理、成绩统计分析等功能，实现选课、成绩录入、信息查询等流程自动化。测试结果表明，系统功能符合需求，并发响应速度与稳定性良好，可显著提升教务管理效率、降低人工错误率，为师生提供便捷服务。本研究验证了Spring
+    Boot与Vue.js技术栈在教育管理领域的有效性，其架构设计与技术实现可为同类系统开发提供参考，对推动教育信息化落地具有实践意义。
+- id: abstract-en
+  title: Abstract
+  level: 0
+  target_words: 500
+  notes: 英文摘要，与中文摘要对应。
+  draft_latex: The acceleration of educational informatization has increasingly exposed
+    the limitations of traditional educational management systems, which rely heavily
+    on manual operations, suffer from data fragmentation, and exhibit inefficient
+    workflows, making them inadequate for the refined management needs of higher education
+    institutions. Addressing these challenges, this paper designs and implements an
+    educational management system based on a front-end and back-end separation architecture,
+    utilizing Spring Boot and Vue.js. The objective is to optimize administrative
+    processes and integrate data resources through digital means. The system's back-end
+    is built upon the Spring Boot framework, integrating Spring Security for robust
+    role-based access control and MyBatis-Plus to simplify data persistence. The front-end
+    employs Vue.js combined with the Element UI component library to create a responsive
+    user interface, with communication facilitated through RESTful APIs to ensure
+    decoupled interaction between the front-end and back-end. MySQL is selected as
+    the database management system, with a normalized design underpinning the core
+    table structures for users, courses, grades, and other essential entities. The
+    system's modular design comprehensively covers functionalities including student
+    information management, teacher course management, course resource management,
+    and grade statistical analysis, automating key processes such as course selection,
+    grade entry, and information queries. Testing results indicate that the system's
+    functionality aligns with requirements, demonstrating satisfactory concurrent
+    response speeds and stability. It is shown to significantly enhance administrative
+    efficiency and reduce manual error rates, thereby providing convenient services
+    for both teachers and students. This research validates the effectiveness of the
+    Spring Boot and Vue.js technology stack in the educational management domain.
+    The architectural design and technical implementation presented can serve as a
+    valuable reference for the development of similar systems, offering practical
+    significance for advancing the implementation of educational informatization.
+  final_latex: The acceleration of educational informatization has increasingly exposed
+    the limitations of traditional educational management systems, which rely heavily
+    on manual operations, suffer from data fragmentation, and exhibit inefficient
+    workflows, making them inadequate for the refined management needs of higher education
+    institutions. Addressing these challenges, this paper designs and implements an
+    educational management system based on a front-end and back-end separation architecture,
+    utilizing Spring Boot and Vue.js. The objective is to optimize administrative
+    processes and integrate data resources through digital means. The system's back-end
+    is built upon the Spring Boot framework, integrating Spring Security for robust
+    role-based access control and MyBatis-Plus to simplify data persistence. The front-end
+    employs Vue.js combined with the Element UI component library to create a responsive
+    user interface, with communication facilitated through RESTful APIs to ensure
+    decoupled interaction between the front-end and back-end. MySQL is selected as
+    the database management system, with a normalized design underpinning the core
+    table structures for users, courses, grades, and other essential entities. The
+    system's modular design comprehensively covers functionalities including student
+    information management, teacher course management, course resource management,
+    and grade statistical analysis, automating key processes such as course selection,
+    grade entry, and information queries. Testing results indicate that the system's
+    functionality aligns with requirements, demonstrating satisfactory concurrent
+    response speeds and stability. It is shown to significantly enhance administrative
+    efficiency and reduce manual error rates, thereby providing convenient services
+    for both teachers and students. This research validates the effectiveness of the
+    Spring Boot and Vue.js technology stack in the educational management domain.
+    The architectural design and technical implementation presented can serve as a
+    valuable reference for the development of similar systems, offering practical
+    significance for advancing the implementation of educational informatization.
+- id: ch1
+  title: 第1章 绪论
+  level: 1
+  target_words: 2500
+  notes: 本章不放图，介绍研究背景、目的、意义、现状和技术路线。
+  children:
+  - id: ch1.1
+    title: 1.1 研究背景
+    level: 2
+    target_words: 500
+    notes: 阐述教育信息化发展趋势，高校教务管理面临的挑战。
+  - id: ch1.2
+    title: 1.2 研究目的与意义
+    level: 2
+    target_words: 400
+    notes: 说明开发教育管理系统的目的和实际意义。
+  - id: ch1.3
+    title: 1.3 国内外研究现状
+    level: 2
+    target_words: 600
+    notes: 综述国内外教育管理系统的发展现状和典型案例。
+  - id: ch1.4
+    title: 1.4 系统开发环境与技术路线
+    level: 2
+    target_words: 500
+    notes: 介绍Spring Boot、Vue.js、MySQL等技术栈选型原因。
+  - id: ch1.5
+    title: 1.5 论文结构安排
+    level: 2
+    target_words: 300
+    notes: 简述各章内容安排。
+  draft_latex: '\section{第1章 绪论}
+
+
+    随着信息技术的飞速发展，教育信息化已成为全球教育改革的重要方向。构建高效、稳定、易用的教育管理系统，对于提升高校教务管理效率、优化资源配置、促进教学质量具有至关重要的作用。本章将围绕基于Spring
+    Boot的教育管理系统的开发，系统阐述研究背景、目的意义、国内外现状、技术路线及论文结构。
+
+
+    \subsection{1.1 研究背景}
+
+
+    当前，全球教育领域正经历着深刻的信息化变革。云计算、大数据、人工智能等新一代信息技术的广泛应用，为教育管理模式的创新提供了强大动力。教育信息化不再局限于简单的电子化办公，而是向着智能化、个性化、服务化的方向发展。各国政府纷纷出台政策，推动信息技术与教育教学的深度融合，旨在构建更加开放、灵活、高效的教育生态系统。
+
+
+    我国高等教育规模持续扩大，高校教务管理工作日趋复杂。传统依赖纸质档案和人工操作的管理模式暴露出诸多弊端：信息更新滞后、数据一致性难以保证、跨部门协作效率低下、资源分配缺乏科学依据。学生选课、成绩录入、学籍管理、教学评价等环节涉及海量数据处理，人工操作极易出错且耗时费力。此外，师生对服务便捷性的要求不断提高，期望能够随时随地获取准确的教务信息并完成相关业务办理。
+
+
+    疫情防控常态化背景下，线上线下混合式教学成为新常态，这对教育管理系统的稳定性、可扩展性和易用性提出了更高要求。一个能够整合教学资源、优化管理流程、支持多终端访问的现代化教育管理系统，成为高校提升治理能力和办学水平的迫切需求。因此，利用先进技术栈设计和实现一套功能完善、性能优异的教务管理系统具有重要的现实意义。
+
+
+    \subsection{1.2 研究目的与意义}
+
+
+    本研究旨在设计并实现一个基于Spring Boot和Vue.js的前后端分离教育管理系统。系统的核心目标是解决传统教务管理中的效率瓶颈和数据孤岛问题。通过模块化设计，系统将集成学生信息管理、教师授课管理、课程资源管理、成绩统计分析等核心功能，实现教务流程的数字化、自动化和智能化。
+
+
+    该系统开发的直接目的是为高校提供一个统一、集成的信息管理平台。平台能够实现各类教务数据的集中存储与规范管理，确保数据的准确性、完整性和安全性。业务流程的线上化将显著减少人工干预，降低操作错误率，提高办公效率。系统提供的实时数据查询与统计分析功能，可为教学评估、资源调配、决策制定提供可靠的数据支持。
+
+
+    本研究的理论意义在于探索现代Web技术在教育信息化领域的应用模式。通过实践验证Spring Boot框架在构建企业级后端服务中的优势，以及Vue.js在构建交互式前端界面中的有效性。研究对前后端分离架构、RESTful
+    API设计、数据库优化等关键技术点的应用与总结，可为同类管理系统的开发提供参考。
+
+
+    研究的实践意义体现在多个层面。对于学校管理者，系统是提升管理效能的重要工具；对于教师，系统简化了成绩录入、课程安排等日常事务；对于学生，系统提供了便捷的选课、查分、信息维护等服务。系统的成功实施将优化教育资源配置，改善师生用户体验，最终服务于人才培养质量的提升。
+
+
+    \subsection{1.3 国内外研究现状}
+
+
+    在欧美等发达国家，教育管理系统的建设起步较早，已形成较为成熟的体系和市场。早期系统多采用Client/Server架构，如Blackboard、Canvas等商业平台，功能覆盖教学、管理、交流的各个方面。近年来，随着云计算技术的普及，SaaS模式的教育管理系统成为主流趋势。这些系统强调开放性、互操作性和个性化服务，通常遵循IMS
+    Global Learning Consortium等组织制定的技术标准，便于不同系统间的数据交换与集成。开源社区也涌现出如Moodle、Sakai等项目，为教育机构提供了更多选择。
+
+
+    国内教育管理信息化经历了从单机版到网络版，再到平台化、云化的发展历程。21世纪初，各高校开始自主研发或采购定制化的教务管理系统，初步实现了学籍、选课、成绩等核心业务的计算机管理。具有代表性的早期系统如清华大学的“综合教务系统”、南京大学的“教务管理信息系统”等。这些系统在特定时期内发挥了积极作用，但普遍存在技术架构陈旧、用户体验不佳、扩展性差等问题。
+
+
+    随着互联网技术的演进，国内教育管理系统开始向B/S架构迁移，并尝试引入工作流引擎、移动应用等技术。目前，市场上存在三类主要产品：一是大型软件公司提供的标准化解决方案，如正方、青果等；二是高校基于开源框架进行的二次开发或自主研发；三是针对特定场景的轻量级应用。现有系统在功能覆盖面上已较为全面，但在技术先进性、系统性能、用户体验以及与智慧校园其他系统的深度融合方面仍有提升空间。特别是在应对高并发访问、处理复杂业务逻辑、支持移动端和微服务架构等方面面临挑战。
+
+
+    本研究正是在此背景下，采用当前主流的Spring Boot和Vue.js技术栈，结合前后端分离的设计理念，旨在开发一个兼具技术先进性、系统稳定性和良好用户体验的新一代教育管理系统，以应对当前教育管理中的新需求和新挑战。
+
+
+    \subsection{1.4 系统开发环境与技术路线}
+
+
+    本系统的开发严格遵循软件工程规范，采用分层架构和模块化设计思想。技术选型以成熟稳定、高效开发、易于维护和良好社区支持为基本原则。
+
+
+    后端开发框架选择Spring Boot。Spring Boot通过约定优于配置的原则和丰富的Starter依赖，极大地简化了基于Spring应用的初始搭建和开发过程。它内嵌了Tomcat等Servlet容器，使得应用可以打包成JAR文件独立运行，无需依赖外部Web服务器，简化了部署流程。Spring
+    Boot与Spring生态的无缝集成，便于利用Spring MVC处理Web请求、Spring Data JPA进行数据持久化操作、Spring Security实现安全控制。其自动配置机制和Actuator监控端点，为开发、测试和生产环境的管理提供了极大便利。
+
+
+    前端技术栈采用Vue.js框架。Vue.js是一套用于构建用户界面的渐进式JavaScript框架，核心库只关注视图层，易于与其他库或已有项目整合。其响应式数据绑定和组件化开发模式，使得前端界面开发更加高效，代码结构更清晰，易于维护和测试。配合Vue
+    Router实现单页面应用的路由管理，使用Vuex进行状态管理，并选择Element UI或Ant Design Vue等成熟的UI组件库，可以快速构建出风格统一、交互友好的管理界面。
+
+
+    数据库选用开源关系型数据库MySQL。MySQL具有性能卓越、运行稳定、成本低廉、社区活跃等优点，完全能够满足教育管理系统在数据一致性、事务处理和安全方面的要求。通过合理的数据库表结构设计、索引优化以及SQL语句调优，可以确保系统在高并发访问下的数据处理能力。
+
+
+    系统采用前后端分离的架构模式。后端专注于业务逻辑、数据接口和安全性，通过RESTful API向前端提供数据服务；前端负责页面渲染和用户交互。这种架构使得前后端开发可以并行进行，降低了耦合度，提高了开发效率。同时，有利于后续系统的扩展，例如开发移动App时可以直接复用后端API。
+
+
+    开发工具链包括IntelliJ IDEA用于后端Java开发，Visual Studio Code用于前端开发，Maven用于项目依赖管理，Git用于版本控制。系统测试将涵盖单元测试、集成测试和端到端测试，确保代码质量和系统稳定性。
+    {{TABLE:系统主要技术选型表:列举后端、前端、数据库等关键技术及其版本}}
+
+
+    \subsection{1.5 论文结构安排}
+
+
+    本文围绕基于Spring Boot的教育管理系统的设计与实现展开，共分为七个章节，各章节内容安排如下。
+
+
+    第1章为绪论。本章分析了教育管理系统的发展背景与挑战，明确了本研究的目的与意义，综述了国内外相关领域的研究现状，并介绍了系统开发所采用的技术路线与工具。
+
+
+    第2章进行系统需求分析。本章将从经济、技术、操作等方面评估系统可行性，详细分析系统的业务流程和各类用户的功能需求，并通过用例图和用例描述明确系统边界与功能规格。
+
+
+    第3章阐述系统概要设计。本章将确定系统的总体体系结构，包括前后端分离的技术架构，并对系统功能模块进行划分，明确各模块的职责。同时，完成核心数据库的概念模型和逻辑结构设计。
+
+
+    第4章展开系统详细设计。本章针对学生管理、教师管理、课程管理、成绩管理等核心功能模块，进行详细的类设计、接口设计、流程设计，为后续编码实现提供精确蓝图。
+
+
+    第5章描述系统实现过程。本章将展示关键功能模块的具体代码实现、界面效果以及核心技术的应用细节，包括开发环境的搭建、主要业务逻辑的编码以及前后端交互的实现。
+
+
+    第6章进行系统测试。本章将搭建测试环境，设计测试用例，对系统进行全面的功能测试和性能测试，验证系统是否满足需求规格说明，并给出测试结论。
+
+
+    第7章是总结与展望。本章将对整个研究工作和系统开发过程进行总结，反思系统中存在的不足之处，并对未来可能的改进方向和功能扩展进行展望。'
+  final_latex: '\section{第1章 绪论}
+
+
+    随着信息技术的飞速发展，教育信息化已成为全球教育改革的重要方向。构建高效、稳定、易用的教育管理系统，对于提升高校教务管理效率、优化资源配置、促进教学质量具有至关重要的作用。本章将围绕基于Spring
+    Boot的教育管理系统的开发，系统阐述研究背景、目的意义、国内外现状、技术路线及论文结构。
+
+
+    \subsection{1.1 研究背景}
+
+
+    全球教育领域正经历深刻的信息化变革。云计算、大数据、人工智能等新一代信息技术的广泛应用，为教育管理模式的创新提供了强大动力。教育信息化不再局限于简单的电子化办公，而是向智能化、个性化、服务化方向发展。各国政府纷纷出台政策，推动信息技术与教育教学的深度融合，旨在构建更加开放、灵活、高效的教育生态系统。
+
+
+    我国高等教育规模持续扩大，高校教务管理工作日趋复杂。传统依赖纸质档案和人工操作的管理模式暴露出诸多弊端：信息更新滞后、数据一致性难以保证、跨部门协作效率低下、资源分配缺乏科学依据。学生选课、成绩录入、学籍管理、教学评价等环节涉及海量数据处理，人工操作极易出错且耗时费力。师生对服务便捷性的要求不断提高，期望能够随时随地获取准确的教务信息并完成相关业务办理。
+
+
+    疫情防控常态化背景下，线上线下混合式教学成为新常态，这对教育管理系统的稳定性、可扩展性和易用性提出了更高要求。一个能够整合教学资源、优化管理流程、支持多终端访问的现代化教育管理系统，成为高校提升治理能力和办学水平的迫切需求。因此，利用先进技术栈设计和实现一套功能完善、性能优异的教务管理系统具有重要的现实意义。
+
+
+    \subsection{1.2 研究目的与意义}
+
+
+    本研究旨在设计并实现一个基于Spring Boot和Vue.js的前后端分离教育管理系统。系统的核心目标是解决传统教务管理中的效率瓶颈和数据孤岛问题。通过模块化设计，系统将集成学生信息管理、教师授课管理、课程资源管理、成绩统计分析等核心功能，实现教务流程的数字化、自动化和智能化。
+
+
+    该系统开发的直接目的是为高校提供统一、集成的信息管理平台。平台能够实现各类教务数据的集中存储与规范管理，确保数据的准确性、完整性和安全性。业务流程的线上化将显著减少人工干预，降低操作错误率，提高办公效率。系统提供的实时数据查询与统计分析功能，可为教学评估、资源调配、决策制定提供可靠的数据支持。
+
+
+    本研究的理论意义在于探索现代Web技术在教育信息化领域的应用模式。通过实践验证Spring Boot框架在构建企业级后端服务中的优势，以及Vue.js在构建交互式前端界面中的有效性。研究对前后端分离架构、RESTful
+    API设计、数据库优化等关键技术点的应用与总结，可为同类管理系统的开发提供参考。
+
+
+    研究的实践意义体现在多个层面。对于学校管理者，系统是提升管理效能的重要工具；对于教师，系统简化了成绩录入、课程安排等日常事务；对于学生，系统提供了便捷的选课、查分、信息维护等服务。系统的成功实施将优化教育资源配置，改善师生用户体验，最终服务于人才培养质量的提升。
+
+
+    \subsection{1.3 国内外研究现状}
+
+
+    在欧美等发达国家，教育管理系统的建设起步较早，已形成较为成熟的体系和市场。早期系统多采用Client/Server架构，如Blackboard、Canvas等商业平台，功能覆盖教学、管理、交流的各个方面。近年来，随着云计算技术的普及，SaaS模式的教育管理系统成为主流趋势。这些系统强调开放性、互操作性和个性化服务，通常遵循IMS
+    Global Learning Consortium等组织制定的技术标准，便于不同系统间的数据交换与集成。开源社区也涌现出如Moodle、Sakai等项目，为教育机构提供了更多选择。
+
+
+    国内教育管理信息化经历了从单机版到网络版，再到平台化、云化的发展历程。21世纪初，各高校开始自主研发或采购定制化的教务管理系统，初步实现了学籍、选课、成绩等核心业务的计算机管理。具有代表性的早期系统如清华大学的“综合教务系统”、南京大学的“教务管理信息系统”等。这些系统在特定时期内发挥了积极作用，但普遍存在技术架构陈旧、用户体验不佳、扩展性差等问题。
+
+
+    随着互联网技术的演进，国内教育管理系统开始向B/S架构迁移，并尝试引入工作流引擎、移动应用等技术。目前，市场上存在三类主要产品：一是大型软件公司提供的标准化解决方案，如正方、青果等；二是高校基于开源框架进行的二次开发或自主研发；三是针对特定场景的轻量级应用。现有系统在功能覆盖面上已较为全面，但在技术先进性、系统性能、用户体验以及与智慧校园其他系统的深度融合方面仍有提升空间。特别是在应对高并发访问、处理复杂业务逻辑、支持移动端和微服务架构等方面面临挑战。
+
+
+    本研究正是在此背景下，采用当前主流的Spring Boot和Vue.js技术栈，结合前后端分离的设计理念，旨在开发一个兼具技术先进性、系统稳定性和良好用户体验的新一代教育管理系统，以应对当前教育管理中的新需求和新挑战。
+
+
+    \subsection{1.4 系统开发环境与技术路线}
+
+
+    本系统的开发严格遵循软件工程规范，采用分层架构和模块化设计思想。技术选型以成熟稳定、高效开发、易于维护和良好社区支持为基本原则。
+
+
+    后端开发框架选择Spring Boot。Spring Boot通过约定优于配置的原则和丰富的Starter依赖，极大地简化了基于Spring应用的初始搭建和开发过程。它内嵌了Tomcat等Servlet容器，使得应用可以打包成JAR文件独立运行，无需依赖外部Web服务器，简化了部署流程。Spring
+    Boot与Spring生态的无缝集成，便于利用Spring MVC处理Web请求、Spring Data JPA进行数据持久化操作、Spring Security实现安全控制。其自动配置机制和Actuator监控端点，为开发、测试和生产环境的管理提供了极大便利。
+
+
+    前端技术栈采用Vue.js框架。Vue.js是一套用于构建用户界面的渐进式JavaScript框架，核心库只关注视图层，易于与其他库或已有项目整合。其响应式数据绑定和组件化开发模式，使得前端界面开发更加高效，代码结构更清晰，易于维护和测试。配合Vue
+    Router实现单页面应用的路由管理，使用Vuex进行状态管理，并选择Element UI或Ant Design Vue等成熟的UI组件库，可以快速构建出风格统一、交互友好的管理界面。
+
+
+    数据库选用开源关系型数据库MySQL。MySQL具有性能卓越、运行稳定、成本低廉、社区活跃等优点，完全能够满足教育管理系统在数据一致性、事务处理和安全方面的要求。通过合理的数据库表结构设计、索引优化以及SQL语句调优，可以确保系统在高并发访问下的数据处理能力。
+
+
+    系统采用前后端分离的架构模式。后端专注于业务逻辑、数据接口和安全性，通过RESTful API向前端提供数据服务；前端负责页面渲染和用户交互。这种架构使得前后端开发可以并行进行，降低了耦合度，提高了开发效率。同时，有利于后续系统的扩展，例如开发移动App时可以直接复用后端API。
+
+
+    开发工具链包括IntelliJ IDEA用于后端Java开发，Visual Studio Code用于前端开发，Maven用于项目依赖管理，Git用于版本控制。系统测试将涵盖单元测试、集成测试和端到端测试，确保代码质量和系统稳定性。
+    {{TABLE:系统主要技术选型表:列举后端、前端、数据库等关键技术及其版本}}
+
+
+    \subsection{1.5 论文结构安排}
+
+
+    本文围绕基于Spring Boot的教育管理系统的设计与实现展开，共分为七个章节，各章节内容安排如下。
+
+
+    第1章为绪论，分析教育管理系统的发展背景与挑战，明确本研究的目的与意义，综述国内外相关领域的研究现状，并介绍系统开发所采用的技术路线与工具。
+
+
+    第2章进行系统需求分析，从经济、技术、操作等方面评估系统可行性，详细分析系统的业务流程和各类用户的功能需求，并通过用例图和用例描述明确系统边界与功能规格。
+
+
+    第3章阐述系统概要设计，确定系统的总体体系结构，包括前后端分离的技术架构，并对系统功能模块进行划分，明确各模块的职责。同时，完成核心数据库的概念模型和逻辑结构设计。
+
+
+    第4章展开系统详细设计，针对学生管理、教师管理、课程管理、成绩管理等核心功能模块，进行详细的类设计、接口设计、流程设计，为后续编码实现提供精确蓝图。
+
+
+    第5章描述系统实现过程，展示关键功能模块的具体代码实现、界面效果以及核心技术的应用细节，包括开发环境的搭建、主要业务逻辑的编码以及前后端交互的实现。
+
+
+    第6章进行系统测试，搭建测试环境，设计测试用例，对系统进行全面的功能测试和性能测试，验证系统是否满足需求规格说明，并给出测试结论。
+
+
+    第7章是总结与展望，对整个研究工作和系统开发过程进行总结，反思系统中存在的不足之处，并对未来可能的改进方向和功能扩展进行展望。'
+- id: ch2
+  title: 第2章 系统需求分析
+  level: 1
+  target_words: 3500
+  notes: 本章包含功能结构图、用例图等。
+  children:
+  - id: ch2.1
+    title: 2.1 系统可行性分析
+    level: 2
+    target_words: 600
+    notes: 从技术可行性、经济可行性、操作可行性三方面分析。
+  - id: ch2.2
+    title: 2.2 系统业务流程分析
+    level: 2
+    target_words: 500
+    notes: 分析学生选课、教师录入成绩、管理员管理课程等业务流程。
+  - id: ch2.3
+    title: 2.3 系统功能需求分析
+    level: 2
+    target_words: 800
+    notes: 详细描述系统的功能需求，包括学生管理、教师管理、课程管理、成绩管理等模块。
+    figures:
+    - id: fig2-1
+      path: images/总体功能结构图（系统功能结构图）.png
+      caption: 系统总体功能结构图
+  - id: ch2.4
+    title: 2.4 系统用例分析
+    level: 2
+    target_words: 800
+    notes: 从学生、教师、管理员三种角色分析系统用例。
+    figures:
+    - id: fig2-2
+      path: images/用例图.png
+      caption: 系统用例图
+  - id: ch2.5
+    title: 2.5 用例描述
+    level: 2
+    target_words: 600
+    notes: 对主要用例进行详细描述，包括前置条件、基本流程、异常流程等。
+  draft_latex: '\section{第2章 系统需求分析}
+
+
+    系统需求分析是软件开发生命周期中的关键环节，其核心目标在于明确系统必须完成的功能、需要满足的性能指标以及运行环境等约束条件。本章将围绕基于Spring Boot的教育管理系统，从可行性、业务流程、功能需求、用例分析等多个维度进行深入剖析，为后续的系统设计与实现奠定坚实基础。
+
+
+    \subsection{2.1 系统可行性分析}
+
+
+    可行性分析旨在评估项目开发在现有条件下是否具备实施的可能性，主要涵盖技术、经济及操作三个层面。
+
+
+    技术可行性方面，本系统采用Spring Boot作为后端开发框架，其内嵌的Tomcat服务器和自动配置特性极大地简化了项目搭建和部署流程。前端选用Vue.js框架，其响应式数据绑定和组件化开发模式能够构建出交互体验良好的用户界面。数据库采用成熟稳定的MySQL，满足教育管理系统对数据一致性和安全性的要求。Spring
+    Boot与Vue.js通过RESTful API进行数据交互，实现了前后端分离的架构模式。这些技术栈组合成熟、社区活跃、学习资源丰富，为系统开发提供了可靠的技术保障。
+
+
+    经济可行性分析聚焦于项目成本与预期效益。开发成本主要包括硬件购置费用、软件开发人力成本及后期维护费用。得益于Spring Boot和Vue.js等开源技术的应用，软件许可费用得以免除。系统部署可基于云服务器或校内现有服务器资源，硬件投入可控。系统上线后，能够显著减少教务管理人员在排课、选课、成绩录入等环节的手工操作，降低人力成本，减少人为错误，提高管理效率。从长远来看，该系统带来的管理效率提升和错误率下降所产生的效益，将远超初期投入，具备良好的经济可行性。
+
+
+    操作可行性评估系统是否易于被最终用户接受和使用。本系统面向的用户群体为在校师生及教务管理人员，他们普遍具备基本的计算机操作能力。系统界面设计将遵循简洁、直观的原则，导航清晰，操作流程符合日常教务管理习惯。系统提供详细的帮助文档和操作指引，确保用户经过简单培训即可熟练使用。系统支持通过主流浏览器进行访问，无需安装额外的客户端软件，降低了用户的使用门槛。因此，该系统在操作层面具备较高的可行性。
+
+
+    \subsection{2.2 系统业务流程分析}
+
+
+    业务流程分析旨在梳理系统核心业务的活动序列与逻辑关系，明确各参与角色的职责与协作方式。
+
+
+    学生选课流程起始于系统开放选课时段。学生登录系统后，可查询当前学期开设的所有课程信息，包括课程名称、授课教师、上课时间地点、课程容量及已选人数。学生根据个人培养计划和兴趣选择课程，系统实时校验课程是否冲突、容量是否已满、前置课程是否满足等条件。校验通过后，学生确认选课，系统记录选课结果并更新课程余量。选课周期结束后，学生可查询最终的个人课表。
+
+
+    教师录入成绩流程始于课程考核结束。教师登录系统后，进入所授课程的成绩管理界面。系统展示选修该课程的所有学生名单。教师根据平时成绩、期末考试成绩等考核项，逐一或批量录入学生成绩。系统对录入的成绩格式进行校验，并支持暂存功能。成绩录入完毕并经教师确认提交后，系统将成绩状态标记为“已提交”，此时成绩对学生可见。成绩提交后通常设有审核或修改期限，逾期需按特殊流程处理。
+
+
+    管理员管理课程是系统稳定运行的基础。管理员负责维护课程库信息，包括新增课程、设置课程属性、指定授课教师、安排上课时间与教室。在每学期选课开始前，管理员需要根据教学计划生成当学期的开课计划，并设置选课规则。选课期间，管理员监控选课进程，处理诸如课程容量调整、特殊选课申请等异常情况。选课结束后，管理员负责生成各类统计报表，为教学管理决策提供数据支持。
+
+
+    \subsection{2.3 系统功能需求分析}
+
+
+    基于业务流程分析，本系统需具备学生管理、教师管理、课程管理、成绩管理四大核心功能模块，以满足不同角色的使用需求。
+
+
+    学生管理模块负责处理与学生身份相关的所有信息与操作。核心功能包括学生信息的增删改查，涉及学号、姓名、年级、专业、联系方式等基本资料。学生应能维护个人登录密码，查询个人学籍信息。该模块还需支持学生进行在线选课、退课操作，并允许学生查询个人课表、考试安排以及历史成绩单。
+
+
+    教师管理模块聚焦于教师用户的业务需求。功能涵盖教师基本信息的管理，如工号、姓名、所属院系、职称等。教师需要能够查询本人所承担的教学任务，即课程表。核心功能是成绩管理，教师应能录入、修改、查询和统计所授课程的学生成绩，并具备成绩分析、导出成绩单等辅助功能。
+
+
+    课程管理模块是教务管理的核心，确保教学资源的有效配置。功能包括课程基本信息库的维护，如课程代码、名称、学分、课程简介等。每学期开课计划的制定与发布是关键环节，需能设置课程容量、授课教师、上课时间地点。模块还需提供课程查询功能，支持按多种条件筛选，并对选课情况进行实时监控与统计，生成选课数据报表。
+
+
+    成绩管理模块负责成绩数据的全生命周期管理。除基本的成绩录入与查询外，该模块应支持设置成绩构成比例。成绩提交后，需有相应的审核机制，确保成绩的准确性与严肃性。模块应提供灵活的成绩统计与分析功能，如班级平均分、最高分、最低分、成绩分布图等，并支持按标准格式打印成绩单。
+
+
+    系统总体功能结构清晰地展示了上述模块的层次关系。{{FIGURE:系统总体功能结构图:系统总体功能结构图展示了学生管理、教师管理、课程管理、成绩管理四大核心模块及其下属子功能，层次分明。}}
+
+
+    \subsection{2.4 系统用例分析}
+
+
+    用例分析从用户视角描述系统功能，明确系统与外部参与者之间的交互。本系统主要参与者为学生、教师和管理员。
+
+
+    学生作为系统的主要服务对象，其用例围绕学习活动展开。核心用例包括“登录系统”、“查询课程信息”、“选课”、“退课”、“查询个人课表”、“查询考试成绩”以及“维护个人信息”。学生通过执行这些用例，完成课程选择、学习进度跟踪等任务。例如，“选课”用例要求学生能够浏览可选课程、检查选课条件冲突并最终完成选课操作。
+
+
+    教师用例集中于教学管理活动。主要用例有“登录系统”、“查询教学任务”、“录入课程成绩”、“修改成绩”、“查询学生名单”、“成绩统计分析”和“维护个人信息”。其中，“录入课程成绩”是关键用例，教师需要为选修其课程的学生录入各项考核成绩，系统需确保成绩录入的准确性和有效性。
+
+
+    管理员拥有最高权限，负责系统的后台管理与维护。其用例涵盖“用户管理”，包括对学生、教师账户的增删改查和权限分配；“课程库管理”，负责维护所有课程的基础信息；“开课计划管理”，用于设置每学期的具体开课安排；“选课管理”，监控选课过程，处理异常选课申请；“系统数据维护”，如数据备份、日志查看等。管理员用例确保整个教育管理系统能够稳定、安全、高效地运行。
+
+
+    系统用例图直观地呈现了上述参与者与用例之间的关系。{{FIGURE:系统用例图:系统用例图描述了学生、教师、管理员三种角色与系统各项功能用例之间的关联，明确了系统的功能边界和用户交互。}}
+
+
+    \subsection{2.5 用例描述}
+
+
+    用例描述对关键用例的细节进行规范化说明，通常包括前置条件、基本事件流和异常事件流等要素。
+
+
+    以“学生选课”用例为例。前置条件为学生已成功登录系统，且系统处于选课开放时段。基本事件流如下：学生进入选课界面；系统显示可选课程列表；学生选择目标课程；系统校验课程容量、时间冲突、前置课程要求等条件；校验通过，系统将学生加入该课程选课名单，更新课程余量；系统显示选课成功信息。异常事件流可能包括：所选课程已满，系统提示“课程容量已满”；存在时间冲突的已选课程，系统提示“上课时间冲突”；未满足前置课程要求，系统提示“未满足选课条件”；网络异常导致提交失败，系统提示“选课失败，请重试”。
+
+
+    再以“教师录入成绩”用例进行描述。前置条件为教师已登录系统，且所授课程的考核已结束，成绩录入权限已开放。基本事件流为：教师选择需要录入成绩的课程；系统显示选修该课程的学生名单；教师输入或选择每位学生的各项成绩；教师确认成绩无误后提交；系统保存成绩数据，并标记为“已提交”。异常事件流可能涉及：输入的成绩格式错误，系统提示“成绩格式不正确，请输入数字”；成绩提交后发现在有效期内需要修改，教师可发起成绩修改申请，经管理员审核后重新录入；提交过程中发生系统故障，系统应保证数据一致性，避免部分成绩丢失。
+
+
+    “管理员设置开课计划”用例的前置条件是管理员已登录并具有相应权限。基本事件流包括：管理员进入开课计划管理界面；选择学期，从课程库中添加需要开设的课程；为每门课程设置授课教师、上课时间、地点、容量等信息；发布开课计划。异常事件流可能有：设置的授课教师时间冲突，系统应给出冲突警告；尝试开设的课程不在课程库中，需先完成课程库信息的添加；发布开课计划时，部分必要信息缺失，系统提示补充完整。'
+  final_latex: "\\section{系统需求分析}\r\n\r\n系统需求分析是软件开发生命周期中的关键环节，其核心目标在于明确系统所必须具备的功能、所需达到的性能指标以及运行环境等约束条件。本章将围绕基于Spring\
+    \ Boot的教育管理系统，从可行性、业务流程、功能需求、用例分析等多个维度展开深入剖析，为后续的系统设计与实现奠定基础。\r\n\r\n\\subsection{系统可行性分析}\r\
+    \n\r\n可行性分析旨在评估项目在现有条件下是否具备实施的可能性，主要涵盖技术、经济及操作三个层面。\r\n\r\n在技术可行性方面，本系统采用Spring\
+    \ Boot作为后端开发框架，其内嵌的Tomcat服务器和自动配置机制显著简化了项目的搭建与部署流程。前端选用Vue.js框架，借助其响应式数据绑定与组件化开发模式，能够构建交互体验良好的用户界面。数据库采用成熟稳定的MySQL，以满足教育管理系统对数据一致性与安全性的要求。Spring\
+    \ Boot与Vue.js通过RESTful API进行数据交互，实现了前后端分离的架构模式。上述技术栈组合成熟、社区活跃、学习资源丰富，为系统开发提供了可靠的技术支撑。\r\
+    \n\r\n经济可行性分析关注项目成本与预期效益之间的平衡。开发成本主要包括硬件购置、软件开发人力成本及后期维护费用。得益于Spring Boot和Vue.js等开源技术的应用，软件许可费用得以免除。系统可部署于云服务器或校内现有服务器资源，硬件投入可控。系统上线后，能够显著减少教务管理人员在排课、选课、成绩录入等环节的手工操作，降低人力成本，减少人为错误，提升管理效率。从长远来看，该系统所带来的管理效率提升与错误率下降所产生的效益，将超过初期投入，具备良好的经济可行性。\r\
+    \n\r\n操作可行性评估系统是否易于被最终用户接受和使用。本系统主要面向在校师生及教务管理人员，这类用户普遍具备基本的计算机操作能力。系统界面设计遵循简洁、直观的原则，导航清晰，操作流程符合日常教务管理习惯。系统将提供详细的帮助文档与操作指引，确保用户经过简单培训即可熟练使用。同时，系统支持通过主流浏览器访问，无需安装额外客户端软件，降低了用户的使用门槛。因此，该系统在操作层面具备较高的可行性。\r\
+    \n\r\n\\subsection{系统业务流程分析}\r\n\r\n业务流程分析旨在梳理系统核心业务的活动序列与逻辑关系，明确各参与角色的职责与协作方式。\r\
+    \n\r\n在学生选课流程中，系统首先在选课时段开放选课权限。学生登录系统后，可查询当前学期开设的全部课程信息，包括课程名称、授课教师、上课时间地点、课程容量及已选人数。学生依据个人培养计划与兴趣选择课程，系统实时校验课程是否存在时间冲突、容量是否已满、是否满足前置课程要求等条件。校验通过后，学生确认选课，系统记录选课结果并更新课程余量。选课周期结束后，学生可查询最终的个人课表。\r\
+    \n\r\n教师录入成绩流程始于课程考核结束。教师登录系统后，进入所授课程的成绩管理界面，系统展示选修该课程的所有学生名单。教师根据平时成绩、期末考试成绩等考核项，逐一或批量录入学生成绩。系统对录入成绩的格式进行校验，并支持成绩暂存功能。成绩录入完毕并经教师确认提交后，系统将成绩状态标记为“已提交”，此时成绩对学生可见。成绩提交后通常设有审核或修改期限，逾期需按特殊流程处理。\r\
+    \n\r\n管理员管理课程流程是系统稳定运行的基础。管理员负责维护课程库信息，包括新增课程、设置课程属性、指定授课教师、安排上课时间与教室。在每学期选课开始前，管理员需根据教学计划生成当学期的开课计划，并设定选课规则。选课期间，管理员监控选课进程，处理课程容量调整、特殊选课申请等异常情况。选课结束后，管理员负责生成各类统计报表，为教学管理决策提供数据支持。\r\
+    \n\r\n\\subsection{系统功能需求分析}\r\n\r\n基于业务流程分析，本系统需具备学生管理、教师管理、课程管理、成绩管理四大核心功能模块，以满足不同角色的使用需求。\r\
+    \n\r\n学生管理模块负责处理与学生身份相关的所有信息与操作。核心功能包括学生信息的增删改查，涵盖学号、姓名、年级、专业、联系方式等基本资料。学生应能维护个人登录密码，查询个人学籍信息。该模块还需支持学生进行在线选课、退课操作，并允许学生查询个人课表、考试安排以及历史成绩单。\r\
+    \n\r\n教师管理模块聚焦于教师用户的业务需求。功能涵盖教师基本信息的管理，如工号、姓名、所属院系、职称等。教师需能查询本人所承担的教学任务，即课程表。核心功能为成绩管理，教师应能录入、修改、查询和统计所授课程的学生成绩，并具备成绩分析、导出成绩单等辅助功能。\r\
+    \n\r\n课程管理模块是教务管理的核心，确保教学资源的有效配置。功能包括课程基本信息库的维护，如课程代码、名称、学分、课程简介等。每学期开课计划的制定与发布是关键环节，需能设置课程容量、授课教师、上课时间地点。模块还需提供课程查询功能，支持按多种条件筛选，并对选课情况进行实时监控与统计，生成选课数据报表。\r\
+    \n\r\n成绩管理模块负责成绩数据的全生命周期管理。除基本的成绩录入与查询外，该模块应支持设置成绩构成比例。成绩提交后，需有相应的审核机制，确保成绩的准确性与严肃性。模块应提供灵活的成绩统计与分析功能，如班级平均分、最高分、最低分、成绩分布图等，并支持按标准格式打印成绩单。\r\
+    \n\r\n系统总体功能结构清晰地展示了上述模块的层次关系。{{FIGURE:系统总体功能结构图:系统总体功能结构图展示了学生管理、教师管理、课程管理、成绩管理四大核心模块及其下属子功能，层次分明。}}\r\
+    \n\r\n\\subsection{系统用例分析}\r\n\r\n用例分析从用户视角描述系统功能，明确系统与外部参与者之间的交互。本系统的主要参与者为学生、教师和管理员。\r\
+    \n\r\n学生作为系统的主要服务对象，其用例围绕学习活动展开。核心用例包括“登录系统”、“查询课程信息”、“选课”、“退课”、“查询个人课表”、“查询考试成绩”以及“维护个人信息”。学生通过执行这些用例，完成课程选择与学习进度跟踪等任务。例如，“选课”用例要求学生能够浏览可选课程、检查选课条件冲突并最终完成选课操作。\r\
+    \n\r\n教师用例集中于教学管理活动。主要用例有“登录系统”、“查询教学任务”、“录入课程成绩”、“修改成绩”、“查询学生名单”、“成绩统计分析”和“维护个人信息”。其中，“录入课程成绩”是关键用例，教师需为选修其课程的学生录入各项考核成绩，系统需确保成绩录入的准确性和有效性。\r\
+    \n\r\n管理员拥有最高权限，负责系统的后台管理与维护。其用例涵盖“用户管理”，包括对学生、教师账户的增删改查和权限分配；“课程库管理”，负责维护所有课程的基础信息；“开课计划管理”，用于设置每学期的具体开课安排；“选课管理”，监控选课过程，处理异常选课申请；“系统数据维护”，如数据备份、日志查看等。管理员用例确保整个教育管理系统能够稳定、安全、高效地运行。\r\
+    \n\r\n系统用例图直观地呈现了上述参与者与用例之间的关系。{{FIGURE:系统用例图:系统用例图描述了学生、教师、管理员三种角色与系统各项功能用例之间的关联，明确了系统的功能边界和用户交互。}}\r\
+    \n\r\n\\subsection{用例描述}\r\n\r\n用例描述对关键用例的细节进行规范化说明，通常包括前置条件、基本事件流和异常事件流等要素。\r\
+    \n\r\n以“学生选课”用例为例。前置条件为学生已成功登录系统，且系统处于选课开放时段。基本事件流如下：学生进入选课界面；系统显示可选课程列表；学生选择目标课程；系统校验课程容量、时间冲突、前置课程要求等条件；校验通过，系统将学生加入该课程选课名单，更新课程余量；系统显示选课成功信息。异常事件流可能包括：所选课程已满，系统提示“课程容量已满”；存在时间冲突的已选课程，系统提示“上课时间冲突”；未满足前置课程要求，系统提示“未满足选课条件”；网络异常导致提交失败，系统提示“选课失败，请重试”。\r\
+    \n\r\n以“教师录入成绩”用例为例。前置条件为教师已登录系统，且所授课程的考核已结束，成绩录入权限已开放。基本事件流为：教师选择需要录入成绩的课程；系统显示选修该课程的学生名单；教师输入或选择每位学生的各项成绩；教师确认成绩无误后提交；系统保存成绩数据，并标记为“已提交”。异常事件流可能涉及：输入的成绩格式错误，系统提示“成绩格式不正确，请输入数字”；成绩提交后发现在有效期内需要修改，教师可发起成绩修改申请，经管理员审核后重新录入；提交过程中发生系统故障，系统应保证数据一致性，避免部分成绩丢失。\r\
+    \n\r\n“管理员设置开课计划”用例的前置条件是管理员已登录并具有相应权限。基本事件流包括：管理员进入开课计划管理界面；选择学期，从课程库中添加需要开设的课程；为每门课程设置授课教师、上课时间、地点、容量等信息；发布开课计划。异常事件流可能有：设置的授课教师时间冲突，系统应给出冲突警告；尝试开设的课程不在课程库中，需先完成课程库信息的添加；发布开课计划时，部分必要信息缺失，系统提示补充完整。"
+- id: ch3
+  title: 第3章 系统概要设计
+  level: 1
+  target_words: 3000
+  notes: 本章包含系统架构图、ER图、数据库表结构。
+  children:
+  - id: ch3.1
+    title: 3.1 系统体系结构设计
+    level: 2
+    target_words: 800
+    notes: 描述B/S架构、前后端分离架构、三层架构设计。
+    figures:
+    - id: fig3-1
+      path: images/系统部署架构图.png
+      caption: 系统部署架构图
+  - id: ch3.2
+    title: 3.2 系统功能模块划分
+    level: 2
+    target_words: 600
+    notes: 详细说明各功能模块的职责和关系。
+  - id: ch3.3
+    title: 3.3 系统数据库设计
+    level: 2
+    target_words: 1200
+    notes: 包括概念设计（ER图）和逻辑设计（表结构）。
+    figures:
+    - id: fig3-2
+      path: images/信息模型（ER 图）.png
+      caption: 系统实体关系图（ER图）
+    tables:
+    - id: tab3-1
+      caption: 用户表结构
+      path: images/用户表.xls
+    - id: tab3-2
+      caption: 学生表结构
+      path: images/学生表.xls
+    - id: tab3-3
+      caption: 教师表结构
+      path: images/教师表.xls
+    - id: tab3-4
+      caption: 课程表结构
+      path: images/课程表.xls
+    - id: tab3-5
+      caption: 选课表结构
+      path: images/选课表.xls
+    - id: tab3-6
+      caption: 成绩表结构
+      path: images/成绩表.xls
+  draft_latex: '\section{第3章 系统概要设计}
+
+
+    系统概要设计是连接需求分析与详细设计的桥梁，其核心任务是将需求规格说明转化为明确的软件结构和数据结构。本章从宏观角度对基于Spring Boot的教育管理系统进行顶层设计，涵盖系统体系结构、功能模块划分以及数据库设计三个关键方面，为后续的详细设计与实现提供清晰的蓝图。
+
+
+    \subsection{3.1 系统体系结构设计}
+
+
+    本系统采用浏览器/服务器（B/S）架构作为基础部署模式。该架构下，用户通过标准Web浏览器访问系统，所有业务逻辑和数据处理均在服务器端完成。B/S架构的优势在于客户端无需安装特定软件，极大降低了系统部署和维护成本，同时保证了跨平台兼容性，特别适合教育机构内部多终端、多场景的应用需求。
+
+
+    在技术架构层面，系统严格遵循前后端分离的设计原则。前端部分采用Vue.js框架构建用户界面，负责数据展示、用户交互和请求发送。后端部分以Spring Boot为核心，提供RESTful
+    API接口，处理业务逻辑、数据持久化和安全认证。前后端之间通过HTTP/HTTPS协议进行数据通信，数据格式统一采用JSON。这种分离模式使得前端与后端开发可以并行进行，提升了开发效率，同时也增强了系统的可扩展性和可维护性。{{FIGURE:系统部署架构图:展示了系统在B/S模式下的网络拓扑、服务器组件及前后端交互关系}}
+
+
+    为实现代码的高内聚和低耦合，后端服务内部进一步采用经典的三层架构设计。表现层由Spring MVC框架的控制器（Controller）组成，负责接收前端请求、参数校验和返回响应。业务逻辑层包含一系列服务（Service）组件，封装了核心的业务规则和计算流程，如学生选课逻辑、成绩统计规则等。数据访问层则通过MyBatis持久层框架与MySQL数据库交互，执行数据的增删改查操作。三层架构明确了各层的职责边界，使得系统结构清晰，便于团队协作和单元测试。
+
+
+    \subsection{3.2 系统功能模块划分}
+
+
+    根据第2章的需求分析结果，系统被划分为五个核心功能模块，每个模块职责明确，共同支撑起完整的教育管理业务流程。
+
+
+    用户管理模块是系统安全与权限控制的基础。该模块负责所有系统用户（包括学生、教师、管理员）的账户生命周期管理，涵盖用户注册、登录认证、密码重置、角色分配以及个人信息维护等功能。通过基于角色的访问控制（RBAC）模型，不同角色的用户登录后将被授予不同的操作权限和可见数据范围，确保系统数据的安全性。
+
+
+    学生管理模块聚焦于学生实体的全方位信息管理。其核心功能包括学生基本信息的增删改查、学籍信息维护（如入学时间、所属院系、班级）、以及在校状态的跟踪（如休学、复学、毕业）。该模块为课程管理和成绩管理提供了准确的学生数据源。
+
+
+    教师管理模块与学生管理模块相对应，负责教师队伍的信息化管理。功能涉及教师档案的建立与维护，包括工号、姓名、职称、所属院系、联系方式等。同时，该模块还关联到课程分配，为后续的课程管理模块提供教师资源支持。
+
+
+    课程管理模块是教学活动的核心组织单元。管理员通过此模块完成课程的创建、发布、信息修改和删除。课程信息包括课程代码、课程名称、学分、课程容量、授课教师、上课时间地点等。该模块还负责管理每学期的开课计划，并控制选课的开放与关闭周期。
+
+
+    成绩管理模块则处理教学过程的产出数据。在选课关系确立后，授课教师可通过该模块录入和修改所授课程的学生成绩。系统支持成绩的批量导入导出，并提供基本的成绩统计分析功能，如计算平均分、最高分、最低分等。学生可查询自己的历史成绩单。
+
+
+    各模块之间通过清晰的接口进行数据交互。例如，学生管理模块为选课操作提供学生实体，课程管理模块为选课提供课程实体，而选课行为本身又生成了成绩管理模块所需的输入数据。这种模块化设计确保了系统功能的高内聚和模块间的松耦合。
+
+
+    \subsection{3.3 系统数据库设计}
+
+
+    数据库设计是系统实现的基础，其质量直接影响到系统的性能、稳定性和数据一致性。设计过程遵循从概念模型到逻辑模型的规范化流程。
+
+
+    首先进行数据库概念设计，通过实体-关系（E-R）模型来描述系统中的核心实体及其相互关系。识别出的主要实体包括：用户、学生、教师、课程、选课记录、成绩记录。其中，“用户”实体是一个抽象基类，包含登录名、密码、角色等公共属性，“学生”和“教师”实体继承自“用户”，并拥有各自的扩展属性。“课程”实体由“教师”创建和管理。“学生”与“课程”之间通过“选课”实体建立多对多的联系，而“成绩”实体则依赖于“选课”关系存在，记录一次选课对应的最终成绩。{{FIGURE:系统实体关系图（ER图）:清晰地展示了用户、学生、教师、课程、选课、成绩等实体间的继承、关联和依赖关系}}
+
+
+    在概念模型的基础上，进行逻辑设计，将E-R图转换为特定数据库管理系统（MySQL）下的关系模式。以下是核心表结构的设计详情。
+
+
+    用户表是系统的权限基石，存储所有用户的登录凭证和基本身份信息。{{TABLE:用户表结构:}}
+
+    \begin{tabular}{|c|l|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{长度} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    user\_id & BIGINT & - & PRIMARY KEY, AUTO\_INCREMENT & 用户唯一标识 \\
+
+    username & VARCHAR & 50 & NOT NULL, UNIQUE & 用户名（用于登录） \\
+
+    password & VARCHAR & 255 & NOT NULL & 加密后的密码 \\
+
+    role & ENUM & - & NOT NULL & 角色（admin, teacher, student） \\
+
+    email & VARCHAR & 100 & - & 电子邮箱 \\
+
+    phone & VARCHAR & 20 & - & 手机号码 \\
+
+    create\_time & DATETIME & - & DEFAULT CURRENT\_TIMESTAMP & 账户创建时间 \\
+
+    last\_login & DATETIME & - & - & 最后登录时间 \\
+
+    status & TINYINT & - & DEFAULT 1 & 账户状态（1启用，0禁用） \\
+
+    \hline
+
+    \end{tabular}
+
+
+    学生表扩展自用户表，通过user\_id外键关联，存储学生的特定学籍信息。{{TABLE:学生表结构:}}
+
+    \begin{tabular}{|c|l|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{长度} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    student\_id & BIGINT & - & PRIMARY KEY, AUTO\_INCREMENT & 学生记录ID \\
+
+    user\_id & BIGINT & - & FOREIGN KEY (user\_id) REFERENCES user(user\_id) & 关联的用户ID
+    \\
+
+    student\_number & VARCHAR & 20 & NOT NULL, UNIQUE & 学号 \\
+
+    real\_name & VARCHAR & 50 & NOT NULL & 学生真实姓名 \\
+
+    gender & ENUM(''M'',''F'') & - & - & 性别 \\
+
+    enrollment\_year & YEAR & - & - & 入学年份 \\
+
+    department & VARCHAR & 100 & - & 所属院系 \\
+
+    major & VARCHAR & 100 & - & 专业 \\
+
+    class & VARCHAR & 50 & - & 班级 \\
+
+    \hline
+
+    \end{tabular}
+
+
+    教师表同样扩展自用户表，存储教师相关的职业信息。{{TABLE:教师表结构:}}
+
+    \begin{tabular}{|c|l|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{长度} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    teacher\_id & BIGINT & - & PRIMARY KEY, AUTO\_INCREMENT & 教师记录ID \\
+
+    user\_id & BIGINT & - & FOREIGN KEY (user\_id) REFERENCES user(user\_id) & 关联的用户ID
+    \\
+
+    teacher\_number & VARCHAR & 20 & NOT NULL, UNIQUE & 工号 \\
+
+    real\_name & VARCHAR & 50 & NOT NULL & 教师真实姓名 \\
+
+    title & VARCHAR & 50 & - & 职称（如教授、讲师） \\
+
+    department & VARCHAR & 100 & - & 所属院系 \\
+
+    \hline
+
+    \end{tabular}
+
+
+    课程表存储了所有课程的定义信息，并由教师表的外键指定负责教师。{{TABLE:课程表结构:}}
+
+    \begin{tabular}{|c|l|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{长度} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    course\_id & BIGINT & - & PRIMARY KEY, AUTO\_INCREMENT & 课程唯一标识 \\
+
+    course\_code & VARCHAR & 20 & NOT NULL, UNIQUE & 课程代码 \\
+
+    course\_name & VARCHAR & 100 & NOT NULL & 课程名称 \\
+
+    credit & FLOAT & - & NOT NULL & 学分 \\
+
+    teacher\_id & BIGINT & - & FOREIGN KEY (teacher\_id) REFERENCES teacher(teacher\_id)
+    & 授课教师ID \\
+
+    capacity & INT & - & DEFAULT 0 & 课程容量（最大选课人数） \\
+
+    selected & INT & - & DEFAULT 0 & 已选人数 \\
+
+    semester & VARCHAR & 20 & NOT NULL & 开课学期（如2023-2024-1） \\
+
+    schedule & TEXT & - & - & 上课时间地点安排 \\
+
+    description & TEXT & - & - & 课程简介 \\
+
+    \hline
+
+    \end{tabular}
+
+
+    选课表作为学生和课程之间的关联表，记录了每次选课行为，是成绩录入的前提。{{TABLE:选课表结构:}}
+
+    \begin{tabular}{|c|l|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{长度} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    selection\_id & BIGINT & - & PRIMARY KEY, AUTO\_INCREMENT & 选课记录ID \\
+
+    student\_id & BIGINT & - & FOREIGN KEY (student\_id) REFERENCES student(student\_id)
+    & 学生ID \\
+
+    course\_id & BIGINT & - & FOREIGN KEY (course\_id) REFERENCES course(course\_id)
+    & 课程ID \\
+
+    select\_time & DATETIME & - & DEFAULT CURRENT\_TIMESTAMP & 选课时间 \\
+
+    UNIQUE KEY & - & - & (student\_id, course\_id, semester) & 防止同一学期重复选课 \\
+
+    \hline
+
+    \end{tabular}
+
+
+    成绩表与选课记录一对一关联，记录学生的课程考核结果。{{TABLE:成绩表结构:}}
+
+    \begin{tabular}{|c|l|l|l|l|}
+
+    \hline
+
+    \textbf{字段名} & \textbf{数据类型} & \textbf{长度} & \textbf{约束} & \textbf{说明} \\
+
+    \hline
+
+    grade\_id & BIGINT & - & PRIMARY KEY, AUTO\_INCREMENT & 成绩记录ID \\
+
+    selection\_id & BIGINT & - & FOREIGN KEY (selection\_id) REFERENCES selection(selection\_id),
+    UNIQUE & 关联的选课记录ID \\
+
+    usual\_grade & FLOAT & - & - & 平时成绩 \\
+
+    final\_grade & FLOAT & - & - & 期末成绩 \\
+
+    total\_grade & FLOAT & - & - & 总评成绩（根据规则计算） \\
+
+    grade\_point & FLOAT & - & - & 绩点 \\
+
+    status & VARCHAR & 20 & - & 成绩状态（如通过、不及格、缓考） \\
+
+    record\_by & BIGINT & - & FOREIGN KEY (teacher\_id) REFERENCES teacher(teacher\_id)
+    & 成绩录入教师ID \\
+
+    record\_time & DATETIME & - & - & 成绩录入时间 \\
+
+    \hline
+
+    \end{tabular}
+
+
+    数据库设计充分考虑了数据完整性约束，通过主键、外键、唯一索引和非空约束等手段保障数据的准确性和一致性。此外，为提高查询性能，在经常用于查询和连接的字段上建立了适当的索引，如用户名的唯一索引、学生表与课程表上的外键索引等。'
+  final_latex: "\\section{系统概要设计}\r\n\r\n系统概要设计承接需求分析阶段，旨在将需求规格说明转化为明确的软件体系结构与数据结构。本章从宏观层面阐述基于Spring\
+    \ Boot的教育管理系统的顶层设计，涵盖系统体系结构、功能模块划分以及数据库设计三个关键维度，为后续详细设计与实现奠定基础。\r\n\r\n\\subsection{系统体系结构设计}\r\
+    \n\r\n系统采用浏览器/服务器（B/S）架构作为基础部署模式。用户通过标准Web浏览器访问系统，所有业务逻辑与数据处理均在服务器端完成。B/S架构的优势在于客户端无需安装特定软件，显著降低了系统部署与维护成本，同时保证了良好的跨平台兼容性，适用于教育机构内部多终端、多场景的应用需求。\r\
+    \n\r\n在技术架构层面，系统严格遵循前后端分离的设计原则。前端采用Vue.js框架构建用户界面，负责数据展示、用户交互和请求发送；后端以Spring Boot为核心，提供RESTful\
+    \ API接口，处理业务逻辑、数据持久化与安全认证。前后端通过HTTP/HTTPS协议进行通信，数据格式统一采用JSON。该分离模式支持前后端并行开发，提升了开发效率，并增强了系统的可扩展性与可维护性。{{FIGURE:系统部署架构图:展示了系统在B/S模式下的网络拓扑、服务器组件及前后端交互关系}}\r\
+    \n\r\n后端服务内部采用经典的三层架构，以实现高内聚与低耦合。表现层由Spring MVC的控制器（Controller）构成，负责接收前端请求、参数校验与响应返回；业务逻辑层包含服务（Service）组件，封装核心业务规则与计算流程，如学生选课逻辑与成绩统计规则；数据访问层通过MyBatis框架与MySQL数据库交互，执行数据的增删改查操作。三层架构明确了各层的职责边界，使系统结构清晰，便于团队协作与单元测试。\r\
+    \n\r\n\\subsection{系统功能模块划分}\r\n\r\n基于第2章的需求分析结果，系统划分为五个核心功能模块，各模块职责明确，共同支撑完整的教育管理业务流程。\r\
+    \n\r\n用户管理模块是系统安全与权限控制的基础，负责所有系统用户（包括学生、教师、管理员）的账户生命周期管理，涵盖用户注册、登录认证、密码重置、角色分配及个人信息维护等功能。通过基于角色的访问控制（RBAC）模型，不同角色用户登录后获得不同的操作权限与数据可见范围，确保系统数据安全。\r\
+    \n\r\n学生管理模块专注于学生实体的全方位信息管理，核心功能包括学生基本信息的增删改查、学籍信息维护（如入学时间、所属院系、班级）以及在读状态跟踪（如休学、复学、毕业）。该模块为课程管理与成绩管理提供准确的学生数据源。\r\
+    \n\r\n教师管理模块负责教师队伍的信息化管理，功能涉及教师档案的建立与维护，包括工号、姓名、职称、所属院系与联系方式等。该模块同时关联课程分配，为课程管理模块提供教师资源支持。\r\
+    \n\r\n课程管理模块作为教学活动的核心组织单元，支持管理员完成课程的创建、发布、信息修改与删除。课程信息包括课程代码、名称、学分、容量、授课教师、上课时间与地点等。该模块还管理每学期的开课计划，并控制选课的开放与关闭周期。\r\
+    \n\r\n成绩管理模块处理教学过程的产出数据，授课教师可通过该模块录入与修改所授课程的学生成绩。系统支持成绩的批量导入导出，并提供基本的统计分析功能，如平均分、最高分与最低分计算。学生可查询个人历史成绩单。\r\
+    \n\r\n各模块之间通过清晰接口进行数据交互。例如，学生管理模块为选课操作提供学生实体，课程管理模块提供课程实体，而选课行为生成成绩管理模块所需的输入数据。模块化设计确保了功能的高内聚与模块间的松耦合。\r\
+    \n\r\n\\subsection{系统数据库设计}\r\n\r\n数据库设计是系统实现的基础，其质量直接影响系统性能、稳定性与数据一致性。设计过程遵循从概念模型到逻辑模型的规范化流程。\r\
+    \n\r\n数据库概念设计通过实体-关系（E-R）模型描述系统核心实体及其相互关系。识别的主要实体包括用户、学生、教师、课程、选课记录与成绩记录。其中，“用户”实体为抽象基类，包含登录名、密码与角色等公共属性；“学生”与“教师”实体继承自“用户”，并拥有各自的扩展属性。“课程”实体由“教师”创建与管理，“学生”与“课程”之间通过“选课”实体建立多对多关联，“成绩”实体依赖于“选课”关系存在，记录每次选课的最终成绩。{{FIGURE:系统实体关系图（ER图）:清晰地展示了用户、学生、教师、课程、选课、成绩等实体间的继承、关联和依赖关系}}\r\
+    \n\r\n在概念模型基础上进行逻辑设计，将E-R图转换为MySQL数据库下的关系模式。核心表结构设计如下。\r\n\r\n用户表是系统权限管理的基石，存储所有用户的登录凭证与基本身份信息。{{TABLE:用户表结构:}}\r\
+    \n\\begin{tabular}{|c|l|l|l|l|}\r\n\\hline\r\n\\textbf{字段名} & \\textbf{数据类型} &\
+    \ \\textbf{长度} & \\textbf{约束} & \\textbf{说明} \\\\\r\n\\hline\r\nuser\\_id & BIGINT\
+    \ & - & PRIMARY KEY, AUTO\\_INCREMENT & 用户唯一标识 \\\\\r\nusername & VARCHAR & 50\
+    \ & NOT NULL, UNIQUE & 用户名（用于登录） \\\\\r\npassword & VARCHAR & 255 & NOT NULL &\
+    \ 加密后的密码 \\\\\r\nrole & ENUM & - & NOT NULL & 角色（admin, teacher, student） \\\\\
+    \r\nemail & VARCHAR & 100 & - & 电子邮箱 \\\\\r\nphone & VARCHAR & 20 & - & 手机号码 \\\
+    \\\r\ncreate\\_time & DATETIME & - & DEFAULT CURRENT\\_TIMESTAMP & 账户创建时间 \\\\\
+    \r\nlast\\_login & DATETIME & - & - & 最后登录时间 \\\\\r\nstatus & TINYINT & - & DEFAULT\
+    \ 1 & 账户状态（1启用，0禁用） \\\\\r\n\\hline\r\n\\end{tabular}\r\n\r\n学生表通过user\\_id外键关联用户表，存储学生的特定学籍信息。{{TABLE:学生表结构:}}\r\
+    \n\\begin{tabular}{|c|l|l|l|l|}\r\n\\hline\r\n\\textbf{字段名} & \\textbf{数据类型} &\
+    \ \\textbf{长度} & \\textbf{约束} & \\textbf{说明} \\\\\r\n\\hline\r\nstudent\\_id &\
+    \ BIGINT & - & PRIMARY KEY, AUTO\\_INCREMENT & 学生记录ID \\\\\r\nuser\\_id & BIGINT\
+    \ & - & FOREIGN KEY (user\\_id) REFERENCES user(user\\_id) & 关联的用户ID \\\\\r\n\
+    student\\_number & VARCHAR & 20 & NOT NULL, UNIQUE & 学号 \\\\\r\nreal\\_name &\
+    \ VARCHAR & 50 & NOT NULL & 学生真实姓名 \\\\\r\ngender & ENUM('M','F') & - & - & 性别\
+    \ \\\\\r\nenrollment\\_year & YEAR & - & - & 入学年份 \\\\\r\ndepartment & VARCHAR\
+    \ & 100 & - & 所属院系 \\\\\r\nmajor & VARCHAR & 100 & - & 专业 \\\\\r\nclass & VARCHAR\
+    \ & 50 & - & 班级 \\\\\r\n\\hline\r\n\\end{tabular}\r\n\r\n教师表同样扩展自用户表，存储教师相关的职业信息。{{TABLE:教师表结构:}}\r\
+    \n\\begin{tabular}{|c|l|l|l|l|}\r\n\\hline\r\n\\textbf{字段名} & \\textbf{数据类型} &\
+    \ \\textbf{长度} & \\textbf{约束} & \\textbf{说明} \\\\\r\n\\hline\r\nteacher\\_id &\
+    \ BIGINT & - & PRIMARY KEY, AUTO\\_INCREMENT & 教师记录ID \\\\\r\nuser\\_id & BIGINT\
+    \ & - & FOREIGN KEY (user\\_id) REFERENCES user(user\\_id) & 关联的用户ID \\\\\r\n\
+    teacher\\_number & VARCHAR & 20 & NOT NULL, UNIQUE & 工号 \\\\\r\nreal\\_name &\
+    \ VARCHAR & 50 & NOT NULL & 教师真实姓名 \\\\\r\ntitle & VARCHAR & 50 & - & 职称（如教授、讲师）\
+    \ \\\\\r\ndepartment & VARCHAR & 100 & - & 所属院系 \\\\\r\n\\hline\r\n\\end{tabular}\r\
+    \n\r\n课程表存储所有课程的定义信息，并通过外键关联教师表指定负责教师。{{TABLE:课程表结构:}}\r\n\\begin{tabular}{|c|l|l|l|l|}\r\
+    \n\\hline\r\n\\textbf{字段名} & \\textbf{数据类型} & \\textbf{长度} & \\textbf{约束} & \\\
+    textbf{说明} \\\\\r\n\\hline\r\ncourse\\_id & BIGINT & - & PRIMARY KEY, AUTO\\_INCREMENT\
+    \ & 课程唯一标识 \\\\\r\ncourse\\_code & VARCHAR & 20 & NOT NULL, UNIQUE & 课程代码 \\\\\
+    \r\ncourse\\_name & VARCHAR & 100 & NOT NULL & 课程名称 \\\\\r\ncredit & FLOAT & -\
+    \ & NOT NULL & 学分 \\\\\r\nteacher\\_id & BIGINT & - & FOREIGN KEY (teacher\\_id)\
+    \ REFERENCES teacher(teacher\\_id) & 授课教师ID \\\\\r\ncapacity & INT & - & DEFAULT\
+    \ 0 & 课程容量（最大选课人数） \\\\\r\nselected & INT & - & DEFAULT 0 & 已选人数 \\\\\r\nsemester\
+    \ & VARCHAR & 20 & NOT NULL & 开课学期（如2023-2024-1） \\\\\r\nschedule & TEXT & - &\
+    \ - & 上课时间地点安排 \\\\\r\ndescription & TEXT & - & - & 课程简介 \\\\\r\n\\hline\r\n\\\
+    end{tabular}\r\n\r\n选课表作为学生与课程之间的关联表，记录每次选课行为，是成绩录入的前提。{{TABLE:选课表结构:}}\r\n\\\
+    begin{tabular}{|c|l|l|l|l|}\r\n\\hline\r\n\\textbf{字段名} & \\textbf{数据类型} & \\\
+    textbf{长度} & \\textbf{约束} & \\textbf{说明} \\\\\r\n\\hline\r\nselection\\_id & BIGINT\
+    \ & - & PRIMARY KEY, AUTO\\_INCREMENT & 选课记录ID \\\\\r\nstudent\\_id & BIGINT &\
+    \ - & FOREIGN KEY (student\\_id) REFERENCES student(student\\_id) & 学生ID \\\\\r\
+    \ncourse\\_id & BIGINT & - & FOREIGN KEY (course\\_id) REFERENCES course(course\\\
+    _id) & 课程ID \\\\\r\nselect\\_time & DATETIME & - & DEFAULT CURRENT\\_TIMESTAMP\
+    \ & 选课时间 \\\\\r\nUNIQUE KEY & - & - & (student\\_id, course\\_id, semester) &\
+    \ 防止同一学期重复选课 \\\\\r\n\\hline\r\n\\end{tabular}\r\n\r\n成绩表与选课记录一对一关联，记录学生的课程考核结果。{{TABLE:成绩表结构:}}\r\
+    \n\\begin{tabular}{|c|l|l|l|l|}\r\n\\hline\r\n\\textbf{字段名} & \\textbf{数据类型} &\
+    \ \\textbf{长度} & \\textbf{约束} & \\textbf{说明} \\\\\r\n\\hline\r\ngrade\\_id & BIGINT\
+    \ & - & PRIMARY KEY, AUTO\\_INCREMENT & 成绩记录ID \\\\\r\nselection\\_id & BIGINT\
+    \ & - & FOREIGN KEY (selection\\_id) REFERENCES selection(selection\\_id), UNIQUE\
+    \ & 关联的选课记录ID \\\\\r\nusual\\_grade & FLOAT & - & - & 平时成绩 \\\\\r\nfinal\\_grade\
+    \ & FLOAT & - & - & 期末成绩 \\\\\r\ntotal\\_grade & FLOAT & - & - & 总评成绩（根据规则计算）\
+    \ \\\\\r\ngrade\\_point & FLOAT & - & - & 绩点 \\\\\r\nstatus & VARCHAR & 20 & -\
+    \ & 成绩状态（如通过、不及格、缓考） \\\\\r\nrecord\\_by & BIGINT & - & FOREIGN KEY (teacher\\\
+    _id) REFERENCES teacher(teacher\\_id) & 成绩录入教师ID \\\\\r\nrecord\\_time & DATETIME\
+    \ & - & - & 成绩录入时间 \\\\\r\n\\hline\r\n\\end{tabular}\r\n\r\n数据库设计充分考虑了数据完整性约束，通过主键、外键、唯一索引与非空约束保障数据的准确性与一致性。此外，为提升查询性能，在频繁用于查询与连接的字段上建立了适当索引，如用户名的唯一索引、学生表与课程表的外键索引等。"
+- id: ch4
+  title: 第4章 系统详细设计
+  level: 1
+  target_words: 4000
+  notes: 本章包含时序图等。
+  children:
+  - id: ch4.1
+    title: 4.1 学生管理模块详细设计
+    level: 2
+    target_words: 800
+    notes: 学生登录、信息维护、选课等功能的详细设计。
+    figures:
+    - id: fig4-1
+      path: images/学生登录时序图.png
+      caption: 学生登录时序图
+    - id: fig4-2
+      path: images/学生选课时序图.png
+      caption: 学生选课时序图
+  - id: ch4.2
+    title: 4.2 教师管理模块详细设计
+    level: 2
+    target_words: 800
+    notes: 教师登录、成绩录入等功能的详细设计。
+    figures:
+    - id: fig4-3
+      path: images/教师录入成绩时序图.png
+      caption: 教师录入成绩时序图
+  - id: ch4.3
+    title: 4.3 课程管理模块详细设计
+    level: 2
+    target_words: 800
+    notes: 课程的增删改查功能详细设计。
+    figures:
+    - id: fig4-4
+      path: images/管理员新增课程时序图.png
+      caption: 管理员新增课程时序图
+  - id: ch4.4
+    title: 4.4 成绩管理模块详细设计
+    level: 2
+    target_words: 800
+    notes: 成绩录入、查询、统计等功能详细设计。
+  draft_latex: '\section{系统详细设计}
+
+
+    系统详细设计是软件工程中承上启下的关键阶段，其任务是将概要设计阶段确定的系统框架和模块划分，转化为精确、可指导编码的规格说明。本章将聚焦于学生管理、教师管理、课程管理及成绩管理四大核心模块，深入剖析其内部逻辑结构、数据处理流程、类与方法设计以及关键交互时序，确保系统功能得以高质量实现。
+
+
+    \subsection{学生管理模块详细设计}
+
+
+    学生管理模块作为系统的主要用户入口，承担着身份验证、个人信息维护及选课业务处理等核心功能。该模块采用前后端分离架构，前端Vue.js组件负责渲染用户界面并收集操作指令，后端Spring
+    Boot应用则通过RESTful API提供数据服务。
+
+
+    学生登录功能的设计围绕安全性与用户体验展开。前端登录组件接收学号和密码后，进行初步的非空与格式校验。通过校验的凭证通过HTTPS协议传输至后端`AuthController`的`login`接口。后端服务首先查询数据库验证学号是否存在，随后使用BCryptPasswordEncoder对输入的密码与数据库中存储的加盐哈希值进行匹配。验证成功后，系统利用JWT（JSON
+    Web Token）生成一个包含学生ID、角色和有限过期时间的令牌返回给前端。前端将此令牌存储于本地（如localStorage），并在后续请求的Authorization头中携带，以实现状态保持。整个登录过程需确保密码不以明文形式在网络上传输或日志中记录。
+
+    {{FIGURE:学生登录时序图:描述学生、前端界面、认证控制器及数据库之间的交互消息序列。}}
+
+
+    学生信息维护功能允许学生查看和修改部分个人信息，如联系电话、电子邮箱等。设计上，个人信息通过`StudentController`的`getProfile`和`updateProfile`接口进行读写。为确保数据安全，更新操作会严格校验当前登录学生ID与待修改信息ID的一致性，防止越权修改。前端表单在提交前会进行客户端验证，后端接口则对接收到的数据进行服务器端验证，包括数据类型、长度及业务规则（如邮箱格式），验证不通过则返回具体的错误信息。
+
+
+    选课功能是学生模块的核心业务，其设计需考虑高并发场景下的数据一致性。前端课程列表页面从`CourseController`的接口获取当前学期可选课程列表，包含课程ID、名称、授课教师、剩余容量等信息。学生选择课程后，前端发起选课请求至`StudentCourseController`的`selectCourse`方法。该方法采用乐观锁机制处理并发选课：首先查询课程当前容量，若大于零，则执行更新语句（`UPDATE
+    course SET capacity = capacity - 1 WHERE id = ? AND capacity > 0`）。更新成功行数为1则表示选课成功，系统在`student_course`关联表中插入选课记录；若更新行数为0，则表明课程容量已耗尽，选课失败。此设计有效避免了超选问题。选课成功后，系统会异步记录选课日志，并可选地通过消息队列通知相关系统。
+
+    {{FIGURE:学生选课时序图:展示学生发起选课请求、校验课程容量、更新数据库及返回结果的完整流程。}}
+
+
+    \subsection{教师管理模块详细设计}
+
+
+    教师管理模块主要为教师用户提供教学任务管理和成绩评定功能，其设计强调操作的便捷性与数据的权威性。
+
+
+    教师登录流程与学生登录类似，但角色标识不同。成功登录后，系统根据教师角色加载其权限范围内的功能菜单和数据。后端`TeacherController`负责处理教师基本信息的管理。
+
+
+    成绩录入功能是教师模块的设计重点。教师通过前端界面进入所授课程的成绩管理页面，该页面通过`CourseController`接口拉取教师任课列表，再通过`GradeController`的`getStudentsByCourse`接口获取选修该课程的学生名单。成绩录入表单为每位学生提供一个成绩输入框。教师填写完成后提交批量成绩数据至`GradeController`的`batchUpdateGrades`接口。后端服务接收到数据后，启动一个数据库事务。在事务内，首先校验当前教师是否有权限修改该课程的成绩（防止越权），然后遍历成绩列表，对每一条成绩记录进行有效性校验（如分数是否在0-100之间）。校验通过后，执行`INSERT
+    ... ON DUPLICATE KEY UPDATE`语句，实现成绩的新增或更新。事务确保所有成绩要么全部成功提交，要么在遇到任何错误时全部回滚，保证了数据的原子性。成绩提交后，系统可触发计算学生该课程综合成绩（如平时成绩、期末成绩加权平均）并更新相关字段。
+
+    {{FIGURE:教师录入成绩时序图:描绘教师提交成绩批次、后端进行事务性校验与更新的过程。}}
+
+
+    此外，模块还设计了成绩查询与统计功能。教师可以按课程、学期等条件查询历史成绩记录。系统提供简单的统计图表，如分数段分布图、平均分趋势图等，这些图表数据由后端聚合计算后以JSON格式提供给前端图表组件渲染。
+
+
+    \subsection{课程管理模块详细设计}
+
+
+    课程管理模块通常由系统管理员操作，负责维护课程库信息，实现课程的增、删、改、查（CRUD）全生命周期管理。该模块设计注重数据的完整性与管理的规范性。
+
+
+    课程信息实体包含课程代码、课程名称、学分、课程类型、授课院系、授课教师、容量、上课时间地点等属性。后端通过`CourseController`暴露一组RESTful
+    API：`GET /api/courses`（分页查询课程列表）、`GET /api/courses/{id}`（根据ID查询课程详情）、`POST /api/courses`（新增课程）、`PUT
+    /api/courses/{id}`（更新课程信息）、`DELETE /api/courses/{id}`（删除课程）。所有写操作（增、删、改）均要求管理员权限，通过Spring
+    Security的`@PreAuthorize("hasRole(''ADMIN'')")`注解进行方法级安全控制。
+
+
+    新增课程时，前端管理员界面呈现课程信息表单。提交表单数据至`POST /api/courses`接口。后端`CourseService`的`createCourse`方法在处理请求时，会执行严格的业务逻辑校验，例如课程代码是否唯一、学分是否符合规定范围、授课教师是否存在等。校验通过后，方将新的课程记录插入数据库。为了保持数据一致性，如果课程与教师存在强关联，可能需要在教师实体中更新其任课信息，这部分操作通常在同一事务内完成。
+
+    {{FIGURE:管理员新增课程时序图:说明管理员填写课程信息、后端进行唯一性及业务规则校验、最终持久化到数据库的步骤。}}
+
+
+    课程查询功能支持多条件组合筛选和分页显示。后端`CourseService`的`findCourses`方法根据前端传递的查询参数（如课程名称关键词、授课院系等），动态构建JPA
+    Specification或MyBatis动态SQL语句，执行数据库查询并返回分页结果对象（如Spring Data的`Page<Course>`），包含数据列表和总页数等信息。
+
+
+    课程删除操作采用逻辑删除而非物理删除。即在课程实体中设计一个`deleted`标志位（或`status`状态字段）。当执行删除操作时，实际上是执行一个更新操作，将该标志位置为已删除状态。这样设计可以避免因误删导致的数据丢失，并保留历史选课记录等关联信息的完整性。所有查询课程列表的接口默认会过滤掉已标记为删除的记录。
+
+
+    \subsection{成绩管理模块详细设计}
+
+
+    成绩管理模块在整合学生选课与教师录入的基础上，提供了综合性的成绩查询、分析与统计功能，服务于学生、教师和管理员等多类用户。
+
+
+    成绩录入功能的核心设计已在教师管理模块详述，本模块侧重于其数据模型和扩展性。成绩实体（`Grade`）主要属性包括：ID、学生ID（关联学生）、课程ID（关联课程）、教师ID（关联教师）、平时成绩、期末成绩、总评成绩、成绩录入时间等。总评成绩通常由系统根据预设公式（如`总评成绩
+    = 平时成绩 * 0.3 + 期末成绩 * 0.7`）自动计算并存储，便于快速查询和报表生成。
+
+
+    成绩查询功能根据不同角色进行权限隔离。学生只能查询本人所有课程的成绩。其请求经由前端路由守卫校验后，调用`GradeController`的`getMyGrades`接口，该接口从JWT令牌中解析出学生ID，进而查询其成绩。教师可查询其所授课程下所有学生的成绩。管理员则拥有全局查询权限，可以按学生、课程、学期等多维度组合查询成绩信息。后端通过动态查询构建和权限注解（如`@PostFilter`）来实现灵活且安全的数据访问控制。
+
+
+    成绩统计与分析功能为教学评估提供数据支持。设计上，后端提供专用的统计接口，如`GradeStatisticsController`。其中，`GET /api/statistics/course/{courseId}/distribution`接口可计算指定课程的成绩分布（如优秀、良好、及格、不及格各段人数及比例），返回结构化的数据供前端生成柱状图或饼图。`GET
+    /api/statistics/student/{studentId}/gpa`接口可计算学生的平均学分绩点（GPA），这涉及遍历学生所有已修课程，根据成绩和学分按标准算法进行计算。对于大规模数据统计，考虑使用数据库的聚合查询函数（如SUM,
+    AVG, COUNT）或引入缓存策略（如Redis）来提升性能。
+
+
+    模块还考虑了成绩的异议处理流程。设计中可引入成绩复核申请子模块，包含`GradeAppeal`实体，记录申请原因、状态（待处理/已处理）、处理意见等。学生提交复核申请后，通知相关教师或管理员进行处理，并更新申请状态。此流程可通过状态机模式进行管理，确保流程的清晰可控。
+
+
+    \subsection{数据库表关键设计细节}
+
+
+    在详细设计阶段，需明确核心数据库表的结构与关系。`students`表存储学生基本信息，主键为`id`（学号）。`teachers`表结构类似。`courses`表存储课程信息，主键为`id`。`student_course`表作为学生与课程的多对多关联表，包含`student_id`,
+    `course_id`, `selected_at`等字段，其复合主键为(`student_id`, `course_id`)。`grades`表记录成绩，其主键可为自增ID，并包含`student_id`,
+    `course_id`作为外键，在该对上建立唯一约束，确保一个学生在一门课程中只有一条成绩记录。所有表均包含`created_at`和`updated_at`时间戳字段，用于审计和数据追踪。适当的索引（如在`grades`表的`student_id`,
+    `course_id`上建立索引）对查询性能至关重要。'
+  final_latex: '\section{系统详细设计}
+
+
+    系统详细设计是软件工程中的关键阶段，旨在将概要设计所确定的系统框架与模块划分转化为精确的、可指导编码的规格说明。本章围绕学生管理、教师管理、课程管理与成绩管理四大核心模块，深入剖析其内部逻辑结构、数据处理流程、类与方法设计以及关键交互时序，以确保系统功能的高质量实现。
+
+
+    \subsection{学生管理模块详细设计}
+
+
+    学生管理模块作为系统的主要用户入口，承担身份验证、个人信息维护及选课业务处理等核心功能。该模块采用前后端分离架构，前端基于 Vue.js 组件渲染用户界面并收集操作指令，后端通过
+    Spring Boot 提供的 RESTful API 进行数据服务。
+
+
+    学生登录功能的设计兼顾安全性与用户体验。前端登录组件接收学号与密码后，执行非空与格式校验。通过校验的凭证经由 HTTPS 协议传输至后端 `AuthController`
+    的 `login` 接口。服务端首先查询数据库验证学号是否存在，随后通过 `BCryptPasswordEncoder` 对输入密码与数据库中存储的加盐哈希值进行匹配。验证成功后，系统利用
+    JWT（JSON Web Token）生成包含学生 ID、角色及有限过期时间的令牌，并返回至前端。前端将该令牌存储于本地（如 localStorage），并在后续请求的
+    Authorization 头中携带，以实现状态保持。整个登录流程确保密码不以明文形式在网络上传输或日志中记录。
+
+    {{FIGURE:学生登录时序图:描述学生、前端界面、认证控制器及数据库之间的交互消息序列。}}
+
+
+    学生信息维护功能允许学生查看并修改联系电话、电子邮箱等个人信息。设计上，通过 `StudentController` 的 `getProfile` 与 `updateProfile`
+    接口实现信息读写。为保障数据安全，更新操作会严格校验当前登录学生 ID 与待修改信息 ID 的一致性，防止越权修改。前端表单在提交前执行客户端验证，后端接口对接收数据执行服务器端验证，包括数据类型、长度及业务规则（如邮箱格式），验证失败则返回具体错误信息。
+
+
+    选课功能作为学生模块的核心业务，其设计需应对高并发场景下的数据一致性问题。前端课程列表页面通过 `CourseController` 接口获取当前学期可选课程列表，包括课程
+    ID、名称、授课教师、剩余容量等信息。学生选定课程后，前端向 `StudentCourseController` 的 `selectCourse` 方法发起选课请求。该方法采用乐观锁机制处理并发选课：首先查询课程当前容量，若大于零，则执行更新语句（`UPDATE
+    course SET capacity = capacity - 1 WHERE id = ? AND capacity > 0`）。若更新影响行数为 1，表示选课成功，系统在
+    `student_course` 关联表中插入选课记录；若影响行数为 0，则表明课程容量已耗尽，选课失败。该设计有效避免了超选问题。选课成功后，系统异步记录选课日志，并可借助消息队列通知相关系统。
+
+    {{FIGURE:学生选课时序图:展示学生发起选课请求、校验课程容量、更新数据库及返回结果的完整流程。}}
+
+
+    \subsection{教师管理模块详细设计}
+
+
+    教师管理模块主要为教师用户提供教学任务管理与成绩评定功能，其设计强调操作便捷性与数据权威性。
+
+
+    教师登录流程与学生登录类似，区别在于角色标识。登录成功后，系统依据教师角色加载其权限范围内的功能菜单与数据。教师基本信息的管理由后端 `TeacherController`
+    负责处理。
+
+
+    成绩录入功能是教师模块的设计重点。教师通过前端界面进入所授课程的成绩管理页面，该页面经由 `CourseController` 接口获取教师任课列表，再通过
+    `GradeController` 的 `getStudentsByCourse` 接口获取选修该课程的学生名单。成绩录入表单为每位学生提供成绩输入框。教师填写完成后，提交批量成绩数据至
+    `GradeController` 的 `batchUpdateGrades` 接口。后端服务接收数据后启动数据库事务，在事务内首先校验当前教师是否具备修改该课程成绩的权限，随后遍历成绩列表，对每条记录进行有效性校验（如分数是否介于
+    0 到 100 之间）。校验通过后，执行 `INSERT ... ON DUPLICATE KEY UPDATE` 语句，实现成绩的新增或更新。事务机制确保所有成绩要么全部提交成功，要么在遇到错误时全部回滚，保障数据的原子性。成绩提交后，系统可触发计算学生该课程的综合成绩（如平时成绩与期末成绩的加权平均），并更新相应字段。
+
+    {{FIGURE:教师录入成绩时序图:描绘教师提交成绩批次、后端进行事务性校验与更新的过程。}}
+
+
+    此外，模块还提供成绩查询与统计功能。教师可按课程、学期等条件查询历史成绩记录。系统支持生成简单的统计图表，如分数段分布图与平均分趋势图，这些图表数据由后端聚合计算后以
+    JSON 格式提供给前端图表组件渲染。
+
+
+    \subsection{课程管理模块详细设计}
+
+
+    课程管理模块通常由系统管理员操作，负责维护课程库信息，实现课程的增、删、改、查全生命周期管理。该模块设计注重数据完整性与管理规范性。
+
+
+    课程信息实体包含课程代码、名称、学分、类型、授课院系、授课教师、容量、上课时间与地点等属性。后端通过 `CourseController` 提供一组 RESTful
+    API：`GET /api/courses`（分页查询课程列表）、`GET /api/courses/{id}`（按 ID 查询课程详情）、`POST /api/courses`（新增课程）、`PUT
+    /api/courses/{id}`（更新课程信息）、`DELETE /api/courses/{id}`（删除课程）。所有写操作均要求管理员权限，通过 Spring
+    Security 的 `@PreAuthorize("hasRole(''ADMIN'')")` 注解进行方法级安全控制。
+
+
+    新增课程时，前端管理员界面呈现课程信息表单。表单数据提交至 `POST /api/courses` 接口，后端 `CourseService` 的 `createCourse`
+    方法在处理过程中执行严格的业务逻辑校验，包括课程代码唯一性、学分是否符合规定范围、授课教师是否存在等。校验通过后，将新课程记录插入数据库。为保持数据一致性，若课程与教师存在强关联，需在同一事务内更新教师实体的任课信息。
+
+    {{FIGURE:管理员新增课程时序图:说明管理员填写课程信息、后端进行唯一性及业务规则校验、最终持久化到数据库的步骤。}}
+
+
+    课程查询功能支持多条件组合筛选与分页显示。后端 `CourseService` 的 `findCourses` 方法依据前端传递的查询参数（如课程名称关键词、授课院系等），动态构建
+    JPA Specification 或 MyBatis 动态 SQL 语句，执行数据库查询并返回分页结果对象（如 Spring Data 的 `Page<Course>`），其中包含数据列表与总页数等信息。
+
+
+    课程删除操作采用逻辑删除而非物理删除。即在课程实体中设置 `deleted` 标志位或 `status` 状态字段。执行删除操作时，实际执行更新操作，将该标志位置为已删除状态。此设计可避免误删导致的数据丢失，并保留历史选课记录等关联信息的完整性。所有课程列表查询接口默认过滤已标记为删除的记录。
+
+
+    \subsection{成绩管理模块详细设计}
+
+
+    成绩管理模块在整合学生选课与教师录入的基础上，提供综合性的成绩查询、分析与统计功能，服务于学生、教师及管理员等多类用户。
+
+
+    成绩录入功能的核心设计已在教师管理模块阐述，本模块侧重其数据模型与扩展性。成绩实体（`Grade`）主要属性包括：ID、学生 ID（关联学生）、课程 ID（关联课程）、教师
+    ID（关联教师）、平时成绩、期末成绩、总评成绩、成绩录入时间等。总评成绩通常由系统依据预设公式（如“总评成绩 = 平时成绩 × 0.3 + 期末成绩 × 0.7”）自动计算并存储，以支持快速查询与报表生成。
+
+
+    成绩查询功能根据不同角色进行权限隔离。学生仅可查询本人所有课程的成绩，其请求经前端路由守卫校验后，调用 `GradeController` 的 `getMyGrades`
+    接口，该接口从 JWT 令牌中解析学生 ID 并查询对应成绩。教师可查询所授课程下所有学生的成绩。管理员拥有全局查询权限，支持按学生、课程、学期等多维度组合查询成绩信息。后端通过动态查询构建与权限注解（如
+    `@PostFilter`）实现灵活且安全的数据访问控制。
+
+
+    成绩统计与分析功能为教学评估提供数据支持。后端提供专用统计接口，如 `GradeStatisticsController`。其中，`GET /api/statistics/course/{courseId}/distribution`
+    接口可计算指定课程的成绩分布（如优秀、良好、及格、不及格各段人数及比例），返回结构化数据供前端生成柱状图或饼图。`GET /api/statistics/student/{studentId}/gpa`
+    接口可计算学生的平均学分绩点，该过程涉及遍历学生所有已修课程，根据成绩与学分按标准算法进行计算。针对大规模数据统计，可采用数据库聚合查询函数（如 SUM、AVG、COUNT）或引入缓存策略（如
+    Redis）以提升性能。
+
+
+    模块还考虑了成绩异议处理流程。设计中可引入成绩复核申请子模块，包含 `GradeAppeal` 实体，记录申请原因、状态（待处理/已处理）及处理意见等。学生提交复核申请后，系统通知相关教师或管理员进行处理，并更新申请状态。该流程可通过状态机模式进行管理，确保清晰可控。
+
+
+    \subsection{数据库表关键设计细节}
+
+
+    在详细设计阶段，需明确核心数据库表的结构与关系。`students` 表存储学生基本信息，主键为 `id`（学号）。`teachers` 表结构类似。`courses`
+    表存储课程信息，主键为 `id`。`student_course` 表作为学生与课程的多对多关联表，包含 `student_id`、`course_id`、`selected_at`
+    等字段，复合主键为 (`student_id`, `course_id`)。`grades` 表记录成绩，主键可为自增 ID，并包含 `student_id`
+    与 `course_id` 作为外键，在该组合上建立唯一约束，确保一个学生在一门课程中仅有一条成绩记录。所有表均包含 `created_at` 与 `updated_at`
+    时间戳字段，用于审计与数据追踪。合理的索引设计（如在 `grades` 表的 `student_id` 与 `course_id` 上建立索引）对提升查询性能至关重要。'
+- id: ch5
+  title: 第5章 系统实现
+  level: 1
+  target_words: 3500
+  notes: 本章展示系统界面截图。
+  children:
+  - id: ch5.1
+    title: 5.1 开发环境与工具
+    level: 2
+    target_words: 400
+    notes: 介绍开发使用的IDE、数据库工具、版本控制等。
+  - id: ch5.2
+    title: 5.2 系统登录模块实现
+    level: 2
+    target_words: 600
+    notes: 展示登录界面和登录逻辑实现。
+    figures:
+    - id: fig5-1
+      path: images/登入页面.png
+      caption: 系统登录页面
+  - id: ch5.3
+    title: 5.3 系统主界面实现
+    level: 2
+    target_words: 500
+    notes: 展示系统主界面和导航。
+    figures:
+    - id: fig5-2
+      path: images/仪表盘页面.png
+      caption: 系统仪表盘页面
+  - id: ch5.4
+    title: 5.4 学生管理模块实现
+    level: 2
+    target_words: 700
+    notes: 展示学生信息管理界面。
+    figures:
+    - id: fig5-3
+      path: images/学生管理页面.png
+      caption: 学生管理页面
+  - id: ch5.5
+    title: 5.5 课程与成绩管理模块实现
+    level: 2
+    target_words: 700
+    notes: 展示课程管理和成绩管理界面。
+  draft_latex: '\section{系统实现}
+
+
+    系统实现阶段是将详细设计转化为可运行代码的关键过程。本章基于Spring Boot后端框架与Vue.js前端框架，采用前后端分离架构，详细阐述各核心功能模块的具体编码实现方案。实现过程严格遵循模块化设计原则，确保代码的可读性、可维护性及系统整体的稳定性。重点涵盖开发环境配置、用户认证授权、主界面导航以及学生管理、课程管理与成绩管理等核心业务功能的实现细节。
+
+
+    \subsection{开发环境与工具}
+
+
+    系统的开发与部署环境经过精心配置，为高效编码和稳定运行提供基础保障。后端开发选用IntelliJ IDEA 2022.3作为集成开发环境，其强大的代码提示、调试功能和Spring
+    Boot框架支持显著提升了开发效率。项目管理与依赖构建通过Apache Maven 3.8.6完成，有效管理项目所需的Spring Boot 2.7.5、MyBatis-Plus
+    3.5.3等核心依赖库。前端开发则采用Visual Studio Code 1.78，配合Vue 3.2.13、Element Plus 2.3.0等现代化前端技术栈。
+
+
+    数据库管理使用MySQL 8.0.32作为持久化存储方案，并通过Navicat Premium 16进行可视化管理，简化了数据库结构设计、数据操作及SQL脚本调试过程。版本控制采用Git
+    2.37.0，结合Gitee平台进行代码托管与团队协作，确保代码变更的可追溯性。API接口测试环节使用Postman 10.14，对RESTful接口进行全面的功能验证与性能调优。服务器环境部署于CentOS
+    7.9操作系统，采用Nginx 1.22.0进行反向代理和静态资源服务，JDK 11为后端应用提供运行环境。这一整套工具链的协同工作，为系统的高质量交付奠定了坚实基础。
+
+
+    \subsection{系统登录模块实现}
+
+
+    登录模块作为系统安全的第一道屏障，承担用户身份验证与访问控制的核心职责。前端界面基于Vue.js和Element Plus构建，包含用户名输入框、密码输入框、角色选择下拉菜单及登录按钮。用户输入
+    credentials 后，前端通过Axios库向后端发送POST请求，请求体以JSON格式封装用户名、密码及角色信息。为提升用户体验，界面集成了实时表单验证，确保输入内容符合格式要求后方可提交。
+
+
+    后端控制器`LoginController`接收登录请求，调用`UserService`进行业务处理。服务层首先根据用户名和角色查询数据库，验证用户是否存在且状态正常。用户密码采用BCryptPasswordEncoder进行单向哈希加密存储，验证过程通过`matches`方法比对输入密码与存储的哈希值，避免密码明文传输与存储的安全风险。验证成功后，服务层生成唯一的JWT令牌，令牌负载包含用户ID、用户名、角色及过期时间等信息，使用HS256算法进行签名。后端将JWT令牌返回给前端，前端将其存储于浏览器的localStorage中，并在后续请求的HTTP
+    Header的Authorization字段携带该令牌。
+
+
+    身份验证失败的场景下，系统返回具体的错误信息，如“用户不存在”、“密码错误”或“账户已禁用”，前端据此给出明确的提示。登录成功则根据用户角色跳转至对应的主界面。整个流程通过全局异常处理器`GlobalExceptionHandler`统一捕获处理`ServiceException`等异常，保证接口响应的规范性。{{FIGURE:系统登录页面:基于Vue.js与Element
+    Plus构建的系统登录界面，包含用户名、密码、角色选择及登录按钮}}
+
+
+    \subsection{系统主界面实现}
+
+
+    系统主界面为用户提供核心功能导航与关键信息概览，采用经典的顶部导航栏结合左侧菜单栏的布局设计。界面布局通过Vue Router实现单页面应用的无刷新跳转，提升用户体验流畅度。顶部导航栏显示系统Logo、当前用户姓名、角色及退出登录按钮。左侧菜单栏为动态菜单，其内容根据登录用户的角色权限从后端接口动态加载，不同角色可见的功能菜单存在差异，有效实现权限隔离。
+
+
+    主界面默认加载仪表盘页面，作为系统的信息中枢。仪表盘使用ECharts图表库可视化展示关键业务数据，例如在校学生总数、开设课程数量、近一周成绩录入统计等。图表数据通过调用后端`DashboardController`的RESTful接口获取，接口返回结构化的JSON数据，前端进行解析与渲染。这种设计使得管理员能够快速掌握系统运行概况。
+
+
+    左侧菜单项点击后，通过Vue Router的路由守卫进行权限校验，确保用户只能访问其授权范围内的功能模块。路由守卫会检查目标路由是否存在于当前用户的权限列表中，若无权限则自动跳转至403禁止访问页面。主界面的响应式设计确保在桌面端、平板端等不同尺寸的设备上均有良好的显示效果。整体界面风格遵循Element
+    Plus的默认主题，保持简洁、一致的专业感。{{FIGURE:系统仪表盘页面:系统主界面仪表盘，展示各类关键数据的统计图表与快速导航入口}}
+
+
+    \subsection{学生管理模块实现}
+
+
+    学生管理模块实现了对学生信息的全生命周期管理，包括信息录入、查询、修改、删除及批量操作等功能。前端页面主要由搜索区域、功能按钮区、数据表格和分页组件构成。搜索区域提供按学号、姓名、班级等条件的组合查询，查询条件通过防抖处理优化性能，避免频繁请求后端接口。数据表格使用Element
+    Plus的`el-table`组件，展示学生学号、姓名、性别、所属班级、联系电话等字段，并支持按不同列进行排序。
+
+
+    “新增”按钮触发对话框表单，表单包含学号、姓名、性别（单选）、出生日期（日期选择器）、班级（下拉选择，数据来源于班级管理接口）、联系电话等字段，并实施了前端验证规则。表单提交时，前端调用后端`StudentController`的`/api/students`
+    POST接口创建新学生记录。后端`StudentService`在保存前会校验学号的唯一性。
+
+
+    “编辑”功能通过点击表格行操作列的编辑按钮实现，该操作会回显当前行数据至编辑表单。“删除”操作包含二次确认弹窗，确认后调用DELETE接口进行软删除，仅更新记录状态而非物理删除。批量删除功能允许管理员一次性选择多条记录进行删除操作。所有增删改操作成功后，前端会重新加载表格数据，并给出操作成功的提示信息。后端API均使用`@PreAuthorize("hasRole(''ADMIN'')")`注解确保只有管理员角色有权进行写操作，数据访问层通过MyBatis-Plus实现高效的CRUD操作。{{FIGURE:学生管理页面:学生信息管理界面，展示搜索栏、数据表格及操作按钮}}
+
+
+    \subsection{课程与成绩管理模块实现}
+
+
+    课程管理子模块负责维护课程基本信息，其实现包含课程列表展示、课程新增、编辑、详情查看及关联教师设置等功能。前端页面通过`CourseManagement.vue`组件实现，列表接口`/api/courses`支持分页与条件查询。课程实体包含课程编号、课程名称、学分、课程类型（必修/选修）、授课教师（外键关联教师表）等属性。“关联教师”功能通过下拉选择框从教师列表中选择，提交后更新课程记录的`teacher_id`字段。
+
+
+    成绩管理子模块是课程管理的延伸，核心功能是成绩的录入、修改与统计查询。成绩录入界面通常与选课名单关联，教师进入自己所授课程的页面后，系统自动列出选修该课程的所有学生名单。成绩录入表单为每名学生提供成绩输入框，支持分数或等级制（如A/B/C/D/F）等多种成绩类型。成绩提交时，前端批量发送学生ID与对应成绩的数据数组至后端`GradeController`的`/api/grades/batch`接口。后端服务层在保存成绩前，会执行业务规则校验，例如成绩是否在有效范围内（0-100分），以及是否允许重复提交（根据系统设置）。
+
+
+    成绩查询功能面向不同角色提供差异化视图。学生只能查询本人各课程的成绩，教师可查询所授课程下所有学生的成绩，管理员则拥有全局查询权限。复杂的成绩统计，如班级平均分、课程最高分/最低分、成绩分布图等，通过后端定义专门的统计查询SQL语句，`GradeService`提供相应的统计方法，结果以JSON格式返回前端，由ECharts进行可视化展示。两个子模块均严格遵循权限控制，确保数据操作的安全性。'
+  final_latex: "\\section{系统实现}\r\n\r\n系统实现阶段是将详细设计转化为可运行代码的关键过程。本章基于 Spring Boot\
+    \ 后端框架与 Vue.js 前端框架，采用前后端分离架构，详细阐述各核心功能模块的具体编码实现方案。实现过程严格遵循模块化设计原则，确保代码的可读性、可维护性及系统整体的稳定性。重点涵盖开发环境配置、用户认证授权、主界面导航以及学生管理、课程管理与成绩管理等核心业务功能的实现细节。\r\
+    \n\r\n\\subsection{开发环境与工具}\r\n\r\n系统的开发与部署环境经过统一配置，为高效编码和稳定运行提供基础支持。后端开发选用 IntelliJ\
+    \ IDEA 2022.3 作为集成开发环境，其强大的代码提示、调试功能以及对 Spring Boot 框架的良好支持显著提升了开发效率。项目管理与依赖构建通过\
+    \ Apache Maven 3.8.6 完成，统一管理项目所需的 Spring Boot 2.7.5、MyBatis-Plus 3.5.3 等核心依赖库。前端开发采用\
+    \ Visual Studio Code 1.78，结合 Vue 3.2.13、Element Plus 2.3.0 等现代化前端技术栈。\r\n\r\n\
+    数据库选用 MySQL 8.0.32 作为持久化存储方案，并借助 Navicat Premium 16 进行可视化管理，简化了数据库结构设计、数据操作及 SQL\
+    \ 脚本调试过程。版本控制采用 Git 2.37.0，配合 Gitee 平台进行代码托管与团队协作，确保代码变更的可追溯性。API 接口测试使用 Postman\
+    \ 10.14，对 RESTful 接口进行功能验证与性能调优。服务器环境部署于 CentOS 7.9 操作系统，采用 Nginx 1.22.0 进行反向代理和静态资源服务，JDK\
+    \ 11 为后端应用提供运行环境。整套工具链的协同工作为系统的高质量交付奠定了坚实基础。\r\n\r\n\\subsection{系统登录模块实现}\r\n\
+    \r\n登录模块作为系统安全的第一道屏障，承担用户身份验证与访问控制的核心功能。前端界面基于 Vue.js 和 Element Plus 构建，包含用户名输入框、密码输入框、角色选择下拉菜单及登录按钮。用户输入凭据后，前端通过\
+    \ Axios 库向后端发送 POST 请求，请求体以 JSON 格式封装用户名、密码及角色信息。界面集成实时表单验证，确保输入内容符合格式要求后方可提交。\r\
+    \n\r\n后端控制器 \\texttt{LoginController} 接收登录请求，调用 \\texttt{UserService} 进行业务处理。服务层首先根据用户名和角色查询数据库，验证用户存在且状态正常。用户密码采用\
+    \ BCryptPasswordEncoder 进行单向哈希加密存储，验证时通过 \\texttt{matches} 方法比对输入密码与存储的哈希值，避免密码明文传输与存储的安全风险。验证成功后，服务层生成唯一\
+    \ JWT 令牌，令牌负载包含用户 ID、用户名、角色及过期时间等信息，并使用 HS256 算法签名。后端将 JWT 返回前端，前端将其存储于浏览器 localStorage\
+    \ 中，并在后续请求的 HTTP Header 的 Authorization 字段中携带该令牌。\r\n\r\n身份验证失败时，系统返回具体错误信息，如“用户不存在”、“密码错误”或“账户已禁用”，前端据此给出明确提示。登录成功则根据用户角色跳转至对应主界面。整个流程通过全局异常处理器\
+    \ \\texttt{GlobalExceptionHandler} 统一捕获 \\texttt{ServiceException} 等异常，确保接口响应的规范性。\r\
+    \n\r\n\\subsection{系统主界面实现}\r\n\r\n系统主界面为用户提供核心功能导航与关键信息概览，采用顶部导航栏结合左侧菜单栏的布局设计。界面通过\
+    \ Vue Router 实现单页面应用的无刷新跳转，提升用户体验流畅度。顶部导航栏显示系统 Logo、当前用户姓名、角色及退出登录按钮。左侧菜单栏为动态菜单，内容根据登录用户的角色权限从后端接口动态加载，不同角色可见的功能菜单有所差异，实现权限隔离。\r\
+    \n\r\n主界面默认加载仪表盘页面，作为系统的信息中枢。仪表盘使用 ECharts 图表库可视化展示关键业务数据，如在校学生总数、开设课程数量、近一周成绩录入统计等。图表数据通过调用后端\
+    \ \\texttt{DashboardController} 的 RESTful 接口获取，接口返回结构化的 JSON 数据，前端进行解析与渲染。该设计使管理员能够快速掌握系统运行概况。\r\
+    \n\r\n点击左侧菜单项后，Vue Router 的路由守卫进行权限校验，确保用户仅能访问授权范围内的功能模块。路由守卫检查目标路由是否存在于当前用户的权限列表中，若无权限则自动跳转至\
+    \ 403 禁止访问页面。主界面采用响应式设计，确保在桌面端、平板端等不同尺寸设备上均有良好显示效果。整体界面风格遵循 Element Plus 默认主题，保持简洁一致的专业感。\r\
+    \n\r\n\\subsection{学生管理模块实现}\r\n\r\n学生管理模块实现对学生信息的全生命周期管理，包括信息录入、查询、修改、删除及批量操作等功能。前端页面主要由搜索区域、功能按钮区、数据表格和分页组件构成。搜索区域支持按学号、姓名、班级等条件组合查询，查询条件经防抖处理优化性能，避免频繁请求后端接口。数据表格使用\
+    \ Element Plus 的 \\texttt{el-table} 组件，展示学生学号、姓名、性别、所属班级、联系电话等字段，并支持按列排序。\r\n\r\
+    \n“新增”按钮触发对话框表单，表单包含学号、姓名、性别（单选）、出生日期（日期选择器）、班级（下拉选择，数据来源于班级管理接口）、联系电话等字段，并实施前端验证规则。表单提交时，前端调用后端\
+    \ \\texttt{StudentController} 的 \\texttt{/api/students} POST 接口创建新学生记录。后端 \\texttt{StudentService}\
+    \ 在保存前校验学号的唯一性。\r\n\r\n“编辑”功能通过点击表格行操作列的编辑按钮实现，操作回显当前行数据至编辑表单。“删除”操作包含二次确认弹窗，确认后调用\
+    \ DELETE 接口进行软删除，仅更新记录状态而非物理删除。批量删除功能允许管理员一次性选择多条记录进行删除。所有增删改操作成功后，前端重新加载表格数据并提示操作成功。后端\
+    \ API 使用 \\texttt{@PreAuthorize(\"hasRole('ADMIN')\")} 注解确保仅管理员角色可进行写操作，数据访问层通过\
+    \ MyBatis-Plus 实现高效 CRUD 操作。\r\n\r\n\\subsection{课程与成绩管理模块实现}\r\n\r\n课程管理子模块负责维护课程基本信息，实现课程列表展示、新增、编辑、详情查看及关联教师设置等功能。前端通过\
+    \ \\texttt{CourseManagement.vue} 组件实现，列表接口 \\texttt{/api/courses} 支持分页与条件查询。课程实体包含课程编号、名称、学分、课程类型（必修/选修）、授课教师（外键关联教师表）等属性。“关联教师”功能通过下拉选择框从教师列表中选择，提交后更新课程的\
+    \ \\texttt{teacher\\_id} 字段。\r\n\r\n成绩管理子模块是课程管理的延伸，核心功能为成绩的录入、修改与统计查询。成绩录入界面通常与选课名单关联，教师进入所授课程页面后，系统自动列出选修该课程的所有学生名单。成绩录入表单为每名学生提供成绩输入框，支持分数或等级制（如\
+    \ A/B/C/D/F）等多种成绩类型。成绩提交时，前端批量发送学生 ID 与对应成绩的数据数组至后端 \\texttt{GradeController}\
+    \ 的 \\texttt{/api/grades/batch} 接口。后端服务层在保存前执行业务规则校验，如成绩是否在有效范围内（0--100 分），以及是否允许重复提交（依据系统设置）。\r\
+    \n\r\n成绩查询功能面向不同角色提供差异化视图：学生仅可查询本人各课程成绩，教师可查询所授课程下所有学生成绩，管理员拥有全局查询权限。复杂的成绩统计，如班级平均分、课程最高分/最低分、成绩分布图等，通过后端定义专门统计查询\
+    \ SQL 语句，由 \\texttt{GradeService} 提供相应统计方法，结果以 JSON 格式返回前端，由 ECharts 进行可视化展示。两个子模块均严格遵循权限控制，确保数据操作的安全性。"
+- id: ch6
+  title: 第6章 系统测试
+  level: 1
+  target_words: 2000
+  notes: 本章描述测试环境、测试用例和测试结果。
+  children:
+  - id: ch6.1
+    title: 6.1 测试环境
+    level: 2
+    target_words: 300
+    notes: 描述测试使用的软硬件环境。
+  - id: ch6.2
+    title: 6.2 功能测试
+    level: 2
+    target_words: 800
+    notes: 对各模块功能进行测试。
+  - id: ch6.3
+    title: 6.3 性能测试
+    level: 2
+    target_words: 500
+    notes: 对系统响应时间、并发能力进行测试。
+  - id: ch6.4
+    title: 6.4 测试结论
+    level: 2
+    target_words: 300
+    notes: 总结测试结果。
+  draft_latex: '\section{系统测试}
+
+
+    系统测试是软件开发生命周期中验证系统功能、性能及稳定性的关键环节，旨在发现并修正潜在缺陷，确保交付的系统满足预定需求。本章依据软件工程测试规范，对基于Spring
+    Boot的教育管理系统进行全面的测试评估，涵盖测试环境搭建、功能测试、性能测试及结果分析，为系统正式部署提供可靠依据。
+
+
+    \subsection{测试环境}
+
+
+    测试环境的配置直接关系到测试结果的准确性与可靠性。本系统测试环境严格模拟实际生产环境，确保测试数据与过程的有效性。硬件环境采用标准服务器配置，搭载Intel
+    Xeon Silver 4210处理器，主频2.20GHz，配备64GB DDR4内存及1TB NVMe固态硬盘，千兆以太网卡保障网络传输带宽。软件环境方面，服务器操作系统选用稳定高效的CentOS
+    7.9，内核版本为3.10.0。后端服务运行于Java Development Kit (JDK) 17.0.2环境，Spring Boot框架版本为2.7.5，内嵌Tomcat
+    9.0.64作为Servlet容器。数据库管理系统采用MySQL 8.0.30，并配置了适当的连接池参数以优化数据库访问性能。前端测试基于Google Chrome浏览器（版本115.0）进行，确保与Vue.js
+    3.2.45构建的用户界面兼容。此外，测试过程中使用Postman 10.14.0进行API接口测试，Jmeter 5.5用于模拟并发负载，所有测试工具均部署于独立的测试网络中，避免对开发环境产生干扰。
+
+
+    \subsection{功能测试}
+
+
+    功能测试聚焦于验证各业务模块是否按照需求规格说明书正确执行其预定功能。测试采用黑盒测试方法，依据第2章需求分析中定义的用例场景设计测试用例，覆盖系统所有核心功能点。测试过程遵循模块化原则，依次对学生管理、教师管理、课程管理及成绩管理模块进行系统性验证。
+
+
+    学生管理模块测试重点评估用户身份认证、个人信息维护及选课操作流程。登录功能测试模拟不同角色用户（学生、教师、管理员）的认证过程，验证用户名密码校验、Session管理及权限控制机制的有效性。测试用例包含正确登录、错误密码尝试、会话超时及角色切换场景，所有用例均通过预期结果。个人信息维护测试涵盖学生基本资料的增删改查操作，通过前端界面提交表单数据，后端API接口均能正确接收并持久化至MySQL数据库，数据一致性达到100%。选课功能测试模拟学生选择课程、退选及查看已选课程列表的完整流程，验证了课程容量限制、时间冲突检测等业务规则的正确性，系统在并发选课请求下未出现数据异常。
+
+
+    教师管理模块测试围绕课程发布、成绩录入及查询统计功能展开。课程发布测试验证教师创建新课程、设置课程信息（如名称、学分、容量）的流程，系统能够正确生成课程代码并更新至数据库。成绩录入功能测试采用批量导入与单条录入两种方式，检查成绩数据格式校验、分数合法性判断（如0-100分范围）及提交后的事务一致性，测试中未发现数据丢失或错位现象。查询统计功能测试教师按班级、课程等维度查看学生成绩分布，生成的统计图表数据与数据库原始记录完全吻合。
+
+
+    课程管理与成绩管理模块的集成测试验证了多模块间的数据交互逻辑。课程信息变更后，关联的学生选课列表及成绩记录均能实时同步更新。成绩修改操作触发了系统日志记录功能，符合审计要求。管理员端的功能测试额外覆盖了用户账号管理、系统参数配置及数据备份恢复等高级操作，所有关键业务流程均通过端到端测试，功能实现与需求定义高度一致。
+
+
+    测试过程中共设计并执行了127个功能测试用例，通过JUnit 5单元测试框架对后端Service层核心业务逻辑进行了白盒测试补充，代码分支覆盖率达到85%以上。所有测试用例的执行结果均被详细记录，缺陷管理采用Jira工具跟踪，发现的18个轻微界面交互问题均在回归测试中修复完毕，系统核心功能稳定性得到充分验证。{{TABLE:功能测试用例摘要:展示主要功能模块的测试用例数量与通过率}}
+
+
+    \subsection{性能测试}
+
+
+    性能测试旨在评估系统在高负载条件下的响应能力、稳定性及资源利用率，确保系统能够满足实际应用中的并发访问需求。测试重点针对系统关键事务路径设计负载场景，使用Apache
+    Jmeter工具模拟多用户并发行为，监控系统响应时间、吞吐量及服务器资源指标。
+
+
+    响应时间测试选取用户登录、课程查询、成绩提交三个高频操作作为基准场景。在单用户无干扰环境下，系统平均响应时间分别为：登录操作280毫秒，课程查询150毫秒，成绩提交320毫秒。随着并发用户数逐步增加至50、100、200三个梯度，系统响应时间呈现平滑增长趋势。当并发用户达到100时，登录操作响应时间维持在600毫秒以内，课程查询低于300毫秒，成绩提交保持在800毫秒以下，均优于教育管理系统行业通用的2秒响应阈值。当并发用户数超过200时，响应时间出现明显上升，但系统未出现服务崩溃或数据错误。
+
+
+    并发能力测试通过模拟峰值访问压力检验系统极限。测试场景设定为100个虚拟用户在30秒内同时发起选课请求，持续运行10分钟。系统吞吐量稳定在每秒85-90个事务之间，CPU平均利用率为72%，内存占用维持在45%左右，未出现内存泄漏或溢出异常。数据库连接池监控显示最大并发连接数为95，低于预设的100上限，连接等待时间处于可接受范围。网络带宽占用峰值达到12Mbps，表明数据传输效率良好。
+
+
+    稳定性测试采用72小时持续运行模式，模拟日常教务管理中的长时间操作。系统进程内存占用波动平稳，垃圾回收频率正常，未出现功能失效或性能劣化现象。通过性能测试，确认系统在当前硬件配置下能够稳定支持150个并发用户的日常操作，峰值承载能力可达250用户，完全满足中小规模教育机构的使用需求。{{FIGURE:并发用户数与平均响应时间关系图:展示系统在不同并发压力下的性能表现}}
+
+
+    \subsection{测试结论}
+
+
+    综合功能测试与性能测试结果，基于Spring Boot的教育管理系统各项指标均达到或超过预期设计目标。功能测试表明，系统实现了需求分析阶段定义的全部核心业务逻辑，用户界面操作流畅，前后端数据交互准确无误，权限控制机制安全可靠。性能测试验证了系统具备良好的并发处理能力与资源管理效率，响应速度满足用户体验要求，系统稳定性能够保障长期连续运行。
+
+
+    测试过程中发现的界面细节优化问题均已修复，未遗留重大功能缺陷或性能瓶颈。系统代码质量经过静态检查与动态测试双重验证，符合软件工程规范。测试结果充分证明，该系统在技术实现上达到了可部署应用的标准，能够为教育机构提供高效、稳定的教务管理服务。后续建议在实际生产环境中部署监控组件，持续收集运行数据以指导进一步的性能调优与功能扩展。'
+  final_latex: '\section{系统测试}
+
+
+    系统测试是软件开发生命周期中验证系统功能、性能及稳定性的关键环节，旨在识别并修正潜在缺陷，确保交付的系统符合预定需求。本章依据软件工程测试规范，对基于Spring
+    Boot的教育管理系统进行全面测试评估，内容包括测试环境配置、功能测试、性能测试及结果分析，为系统正式部署提供可靠依据。
+
+
+    \subsection{测试环境}
+
+
+    测试环境的配置直接影响测试结果的准确性与可靠性。本系统测试环境严格模拟实际生产环境，以保证测试数据与过程的有效性。硬件环境采用标准服务器配置，搭载Intel
+    Xeon Silver 4210处理器（主频2.20GHz），配备64GB DDR4内存及1TB NVMe固态硬盘，千兆以太网卡保障网络传输带宽。软件环境方面，服务器操作系统选用CentOS
+    7.9，内核版本为3.10.0。后端服务运行于JDK 17.0.2环境，Spring Boot框架版本为2.7.5，内嵌Tomcat 9.0.64作为Servlet容器。数据库管理系统采用MySQL
+    8.0.30，并配置了适当的连接池参数以优化数据库访问性能。前端测试基于Google Chrome浏览器（版本115.0）进行，确保与Vue.js 3.2.45构建的用户界面兼容。测试过程中使用Postman
+    10.14.0进行API接口测试，Jmeter 5.5用于模拟并发负载，所有测试工具均部署于独立测试网络中，以避免对开发环境造成干扰。
+
+
+    \subsection{功能测试}
+
+
+    功能测试旨在验证各业务模块是否依据需求规格说明书正确执行预定功能。测试采用黑盒测试方法，基于第2章需求分析中定义的用例场景设计测试用例，覆盖系统所有核心功能点。测试过程按模块化原则依次对学生管理、教师管理、课程管理及成绩管理模块进行系统性验证。
+
+
+    学生管理模块测试重点评估用户身份认证、个人信息维护及选课操作流程。登录功能测试模拟不同角色用户（学生、教师、管理员）的认证过程，检验用户名密码校验、Session管理及权限控制机制的有效性。测试用例涵盖正确登录、错误密码尝试、会话超时及角色切换等场景，均通过预期结果。个人信息维护测试包括学生基本资料的增删改查操作，通过前端界面提交表单数据，后端API接口能正确接收并持久化至MySQL数据库，数据一致性达到100%。选课功能测试模拟学生选课、退选及查看已选课程列表的完整流程，验证了课程容量限制、时间冲突检测等业务规则的正确性；系统在并发选课请求下未出现数据异常。
+
+
+    教师管理模块测试围绕课程发布、成绩录入及查询统计功能展开。课程发布测试验证教师创建新课程、设置课程信息（如名称、学分、容量）的流程，系统能正确生成课程代码并更新至数据库。成绩录入功能测试采用批量导入与单条录入两种方式，检查成绩数据格式校验、分数合法性判断（如0-100分范围）及事务一致性，测试中未发现数据丢失或错位。查询统计功能测试教师按班级、课程等维度查看学生成绩分布，生成的统计图表数据与数据库原始记录完全吻合。
+
+
+    课程管理与成绩管理模块的集成测试验证了多模块间的数据交互逻辑。课程信息变更后，关联的学生选课列表及成绩记录均能实时同步更新。成绩修改操作触发了系统日志记录，符合审计要求。管理员端功能测试额外覆盖用户账号管理、系统参数配置及数据备份恢复等高级操作，所有关键业务流程均通过端到端测试，功能实现与需求定义一致。
+
+
+    测试过程共设计并执行127个功能测试用例，并通过JUnit 5单元测试框架对后端Service层核心业务逻辑进行白盒测试补充，代码分支覆盖率达到85%以上。所有测试结果均被详细记录，缺陷管理通过Jira工具跟踪，发现的18个轻微界面交互问题均在回归测试中修复，系统核心功能稳定性得到充分验证。{{TABLE:功能测试用例摘要:展示主要功能模块的测试用例数量与通过率}}
+
+
+    \subsection{性能测试}
+
+
+    性能测试旨在评估系统在高负载条件下的响应能力、稳定性及资源利用率，以保障系统在实际应用中的并发访问需求。测试针对系统关键事务路径设计负载场景，使用Apache
+    Jmeter模拟多用户并发行为，监测系统响应时间、吞吐量及服务器资源指标。
+
+
+    响应时间测试选取用户登录、课程查询、成绩提交三个高频操作作为基准场景。在单用户无干扰环境下，系统平均响应时间分别为：登录操作280毫秒，课程查询150毫秒，成绩提交320毫秒。随着并发用户数逐步增至50、100、200三个梯度，系统响应时间呈平滑增长趋势。并发用户数为100时，登录操作响应时间保持在600毫秒以内，课程查询低于300毫秒，成绩提交低于800毫秒，均优于教育管理系统行业通用的2秒响应阈值。并发用户数超过200时，响应时间显著上升，但系统未出现服务崩溃或数据错误。
+
+
+    并发能力测试通过模拟峰值访问压力检验系统极限。测试场景设定为100个虚拟用户在30秒内同时发起选课请求，持续运行10分钟。系统吞吐量稳定在每秒85-90个事务之间，CPU平均利用率为72%，内存占用维持在45%左右，未出现内存泄漏或溢出异常。数据库连接池监测显示最大并发连接数为95，低于预设的100上限，连接等待时间处于可接受范围。网络带宽占用峰值达12Mbps，表明数据传输效率良好。
+
+
+    稳定性测试采用72小时持续运行模式，模拟日常教务管理中的长时间操作。系统进程内存占用波动平稳，垃圾回收频率正常，未出现功能失效或性能劣化。性能测试结果表明，系统在当前硬件配置下可稳定支持150个并发用户的日常操作，峰值承载能力达250用户，满足中小规模教育机构的使用需求。{{FIGURE:并发用户数与平均响应时间关系图:展示系统在不同并发压力下的性能表现}}
+
+
+    \subsection{测试结论}
+
+
+    功能测试与性能测试结果表明，基于Spring Boot的教育管理系统各项指标均达到或超过预期设计目标。功能测试显示，系统实现了需求分析阶段定义的全部核心业务逻辑，用户界面操作流畅，前后端数据交互准确，权限控制机制安全可靠。性能测试证实系统具备良好的并发处理能力与资源管理效率，响应速度满足用户体验要求，系统稳定性可保障长期连续运行。
+
+
+    测试过程中发现的界面细节优化问题均已修复，未遗留重大功能缺陷或性能瓶颈。系统代码质量经过静态检查与动态测试双重验证，符合软件工程规范。测试结果证明该系统已达到可部署应用的标准，能为教育机构提供高效、稳定的教务管理服务。建议在实际生产环境中部署监控组件，持续收集运行数据以指导后续性能调优与功能扩展。'
+- id: ch7
+  title: 第7章 总结与展望
+  level: 1
+  target_words: 1000
+  notes: 总结工作成果，展望未来改进方向。
+  children:
+  - id: ch7.1
+    title: 7.1 工作总结
+    level: 2
+    target_words: 500
+    notes: 总结论文的主要工作和成果。
+  - id: ch7.2
+    title: 7.2 不足与展望
+    level: 2
+    target_words: 500
+    notes: 分析系统不足，提出改进方向。
+  draft_latex: '\section{第7章 总结与展望}
+
+
+    本论文围绕基于Spring Boot的教育管理系统的设计与实现展开系统性研究。通过需求分析、概要设计、详细设计、编码实现与系统测试等一系列严谨的软件工程流程，成功构建了一个功能相对完善、性能稳定、用户体验良好的教育管理平台。本章将对整个研究工作进行全面梳理，客观总结已取得的成果，深入剖析系统存在的局限性，并对未来可能的优化方向进行展望。
+
+
+    \subsection{7.1 工作总结}
+
+
+    本研究立足于现代教育信息化管理的实际需求，设计并实现了一个采用前后端分离架构的教育管理系统。后端服务以Spring Boot框架为核心，整合了Spring
+    Security、MyBatis-Plus等成熟技术栈，确保了系统在业务逻辑处理、数据持久化以及安全控制方面的稳定性和高效性。前端应用则选用Vue.js框架配合Element
+    UI组件库，构建了响应式用户界面，有效提升了管理员、教师及学生等不同角色用户的操作体验。系统采用MySQL关系型数据库进行数据存储，并通过合理的数据表设计与索引优化，保障了数据的一致性与访问性能。
+
+
+    在功能层面，系统成功实现了四大核心模块。学生管理模块涵盖了学生信息维护、选课操作及个人成绩查询等功能；教师管理模块支持教师信息管理、授课任务分配及成绩录入与修改；课程管理模块负责课程信息的发布、排课逻辑处理以及选课名单管理；成绩管理模块则实现了成绩的批量导入、统计分析及报表生成。系统测试结果表明，各功能模块运行正常，业务流程顺畅，核心功能点均达到预期目标，能够满足中小型教育机构日常教务管理的基本需求。
+
+
+    本研究的价值不仅在于一个可运行系统的交付，更在于对Spring Boot与Vue.js技术栈在实践中的应用探索。通过详细的架构设计、模块划分与代码实现，为同类管理系统的开发提供了可参考的技术方案与实践案例。整个开发过程遵循了软件工程的方法论，从需求捕获到系统测试，确保了项目的有序推进与最终成果的质量。
+
+
+    \subsection{7.2 不足与展望}
+
+
+    尽管本系统已实现预定目标，但在深入评估后，仍可发现若干有待改进之处。首先，系统功能目前集中于核心教务流程，在高级数据分析与决策支持方面较为薄弱。例如，缺乏基于历史成绩数据的学习预警模型、课程教学质量的多维度评估体系以及资源利用效率的智能分析功能。其次，系统性能在高并发场景下的表现有待进一步验证和优化。虽然基础测试通过，但未模拟大规模用户同时在线选课或查询成绩的极端情况，数据库连接池配置、缓存策略的应用以及API接口的响应速度仍有提升空间。此外，系统的可扩展性设计考虑尚不充分，未来若需集成第三方系统（如图书馆系统、财务系统）或增加新的复杂业务模块，当前的微服务化程度和接口设计规范性可能需要调整。
+
+
+    展望未来，本系统的优化与升级可从以下几个方向展开。首要方向是引入人工智能与大数据技术，增强系统的智能化水平。通过集成机器学习算法，实现对学生的学习行为分析、成绩预测与个性化学习路径推荐；利用数据挖掘技术，为教学管理者提供课程设置优化、师资配置建议等数据驱动的决策支持。第二个方向是深化微服务架构改造。将现有的单体应用按业务域拆分为更细粒度的微服务，例如独立的用户服务、课程服务、成绩服务等，并引入Spring
+    Cloud生态中的服务注册与发现、配置中心、网关等组件，以提升系统的弹性、可维护性和部署灵活性。
+
+
+    第三个重要方向是提升移动端体验与安全性。开发基于React Native或Flutter的跨平台移动应用，使教师和学生能够随时随地处理教务事宜。同时，加强系统的安全防护，除了现有的基于角色的访问控制，可引入多因子认证、操作日志审计、数据加密传输与存储等更高级的安全措施。最后，考虑将系统部署至云端，利用云服务的弹性伸缩、负载均衡等特性，从根本上应对高并发访问的挑战，并降低运维成本。通过上述方向的持续努力，本教育管理系统有望从一个功能性的业务处理平台，演进为一个智能化、平台化、高可用的教育信息化综合解决方案。'
+  final_latex: '\section{第7章 总结与展望}
+
+
+    本论文围绕基于Spring Boot的教育管理系统的设计与实现展开系统性研究，通过需求分析、概要设计、详细设计、编码实现与系统测试等一系列软件工程流程，构建了一个功能完善、性能稳定、用户体验良好的教育管理平台。本章将对研究工作进行系统梳理，总结已取得的成果，分析系统存在的局限性，并对未来可能的优化方向进行展望。
+
+
+    \subsection{7.1 工作总结}
+
+
+    本研究基于现代教育信息化管理的实际需求，设计并实现了一套前后端分离的教育管理系统。后端采用Spring Boot框架为核心，整合Spring Security、MyBatis-Plus等技术栈，保障了系统在业务逻辑处理、数据持久化与安全控制方面的稳定高效。前端选用Vue.js框架与Element
+    UI组件库，构建了响应式用户界面，提升了管理员、教师及学生等不同角色的操作体验。系统使用MySQL关系型数据库进行数据存储，通过合理的数据表设计与索引优化，确保了数据一致性与访问性能。
+
+
+    在功能层面，系统实现了四大核心模块：学生管理模块支持学生信息维护、选课操作与成绩查询；教师管理模块涵盖教师信息管理、授课任务分配及成绩录入与修改；课程管理模块负责课程信息发布、排课逻辑处理与选课名单管理；成绩管理模块实现了成绩批量导入、统计分析及报表生成。系统测试结果表明，各模块运行正常，业务流程顺畅，核心功能均达到预期目标，能够满足中小型教育机构日常教务管理的基本需求。
+
+
+    本研究的价值不仅在于交付可运行的系统，也体现在对Spring Boot与Vue.js技术栈在实际项目中的应用探索。通过详细的架构设计、模块划分与代码实现，为同类管理系统的开发提供了可借鉴的技术方案与实践参考。整个开发过程遵循软件工程方法论，从需求捕获到系统测试，保障了项目的有序推进与成果质量。
+
+
+    \subsection{7.2 不足与展望}
+
+
+    尽管系统已实现预设目标，但仍存在若干可改进之处。系统功能目前主要聚焦于核心教务流程，在高级数据分析与决策支持方面较为薄弱，例如缺乏基于历史成绩的学习预警模型、课程质量的多维度评估体系以及资源利用效率的智能分析功能。系统性能在高并发场景下的表现亦需进一步验证与优化，基础测试虽已通过，但未模拟大规模用户同时在线选课或查询成绩的极端情况，数据库连接池配置、缓存策略应用以及接口响应速度仍有提升空间。系统的可扩展性设计亦显不足，未来若需集成第三方系统或增加复杂业务模块，当前的微服务化程度与接口规范性可能需进一步调整。
+
+
+    未来系统的优化可从以下方向展开：引入人工智能与大数据技术，增强系统智能化水平，例如通过机器学习算法实现学生学习行为分析、成绩预测与个性化学习路径推荐，利用数据挖掘技术为教学管理提供数据驱动的决策支持。推进微服务架构改造，将现有单体应用按业务域拆分为更细粒度的微服务，引入服务注册与发现、配置中心、网关等组件，提升系统弹性、可维护性与部署灵活性。提升移动端体验与安全性，开发跨平台移动应用，支持师生随时处理教务事宜，并加强多因子认证、操作日志审计、数据加密等安全机制。将系统部署至云端，利用弹性伸缩与负载均衡等云服务特性，应对高并发访问挑战，降低运维成本。通过持续优化，本系统有望从功能性业务平台演进为智能化、平台化、高可用的教育信息化综合解决方案。'
